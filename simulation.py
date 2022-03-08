@@ -1,24 +1,31 @@
-import pandas as pd
+import random
+from typing import List
+
+from liquidity_provider import LiquidityProvider
+from option_pool import OptionPool
+from transaction import Transaction
 
 class Simulation:
-    def __init__(self) -> None:
-        self.run()
+    def __init__(self, num_liquidity_providers: int, underlying_asset: str, num_epochs: int) -> None:
+        self.actors = []
+        self.option_pool = OptionPool(underlying_asset)
+        self.num_epochs = num_epochs
 
-    def run(self):
-        # TODO
-        pass
+        # Create liquidity providers
+        for i in range(num_liquidity_providers):
+            self.actors.append(LiquidityProvider(self.option_pool))
 
-    def getData(self):
-        # TODO
-        return [
-            {'epoch': 1, 'collateral': 5000},
-            {'epoch': 2, 'collateral': 5500},
-            {'epoch': 3, 'collateral': 5340},
-            {'epoch': 4, 'collateral': 5345},
-            {'epoch': 5, 'collateral': 5673},
-            {'epoch': 6, 'collateral': 6000},
-            {'epoch': 7, 'collateral': 6500},
-            {'epoch': 8, 'collateral': 6340},
-            {'epoch': 9, 'collateral': 6345},
-            {'epoch': 10, 'collateral': 6673}
-        ]
+    def run(self) -> List[Transaction]:
+        transactions: List[Transaction] = []
+
+        # Run simulation
+        for epoch in range(self.num_epochs):
+            random.shuffle(self.actors)
+            for actor in self.actors:
+                transactions.append(actor.start_epoch(epoch))
+
+            random.shuffle(self.actors)
+            for actor in self.actors:
+                transactions.append(actor.end_epoch(epoch))
+
+        return transactions
