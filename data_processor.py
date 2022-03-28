@@ -3,9 +3,10 @@ from transaction import Transaction, TransactionAction
 from typing import List
 
 class DataProcessor:
-    def __init__(self, num_epochs: int, transactions: List[Transaction]) -> None:
+    def __init__(self, num_epochs: int, transactions: List[Transaction], size_of_pool: int) -> None:
         self.num_epochs = num_epochs
         self.transactions = transactions
+        self.size_of_pool = size_of_pool
     
     def getEpochs(self) -> List[Epoch]:
         epochs: List[Epoch] = [Epoch(i, 0.0, 0.0) for i in range(self.num_epochs)]

@@ -10,6 +10,7 @@ class LiquidityProvider:
             epoch,
             TransactionAction.DEPOSIT,
             self.generateRandomDepositValue(),
+            #make it self. getDepositValue and code it
             1
         ))
 

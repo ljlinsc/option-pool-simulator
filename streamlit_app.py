@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from find_profit import FindProfit
 from simulation import Simulation
 from data_processor import DataProcessor
 
@@ -28,6 +29,11 @@ with st.sidebar.form('input_parameters'):
         'Number of liquidity providers',
         min_value=1,
         value=3
+    )
+    size_of_pool = st.number_input(
+        'Size in Dollars',
+        min_value=1,
+        value=100000
     )
     underlying_asset = st.selectbox(
         'Underlying asset',
@@ -55,16 +61,27 @@ if submitted:
     sim = Simulation(
         num_liquidity_providers,
         underlying_asset,
-        num_epochs
+        num_epochs,
+        size_of_pool
     )
     transactions = sim.run()
     
-    data_processor = DataProcessor(num_epochs, transactions)
+    fp = FindProfit(
+        size_of_pool        
+    )
+    
+    totallpprofit = fp.calc_profit(size_of_pool)
+    data_processor = DataProcessor(num_epochs, transactions, size_of_pool)
     data_by_epoch = alt.Data(values=[epoch.__dict__ for epoch in data_processor.getEpochs()])
+    
+    
 
     # OUTPUT
 
     st.header('Simulation Results')
+    subhea = ("Profit of LPs:" , totallpprofit)
+    st.subheader(subhea)
+    
 
     with st.container():
         st.subheader('Total value locked in the option pool')
