@@ -20,8 +20,8 @@ st.title('Option Pool Simulator')
 # PARAMETERS
 
 with st.sidebar.form('input_parameters'):
-    num_option_buyers = st.number_input(
-        'Number of option buyers',
+    num_purchasers = st.number_input(
+        'Number of option purchasers',
         min_value=1,
         value=3
     )
@@ -60,6 +60,7 @@ if submitted:
 
     sim = Simulation(
         num_liquidity_providers,
+        num_purchasers,
         underlying_asset,
         num_epochs,
         size_of_pool

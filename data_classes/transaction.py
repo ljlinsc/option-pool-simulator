@@ -7,7 +7,7 @@ class TransactionAction(Enum):
     WITHDRAW = auto()
 
     # for purchasers
-    BUY = auto()
+    PURCHASE = auto()
     EXERCISE = auto()
 
 @dataclass

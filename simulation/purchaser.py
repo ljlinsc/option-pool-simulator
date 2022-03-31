@@ -1,5 +1,7 @@
-from option_pool import OptionPool
-from transaction import Transaction, TransactionAction
+import numpy as np
+
+from simulation.option_pool import OptionPool
+from data_classes.transaction import Transaction, TransactionAction
 
 class Purchaser:
     def __init__(self, option_pool: OptionPool) -> None:
@@ -11,7 +13,6 @@ class Purchaser:
             epoch,
             TransactionAction.PURCHASE,
             self.generateRandomOption(),
-            1
         ))
 
 
@@ -20,7 +21,6 @@ class Purchaser:
             epoch,
             TransactionAction.EXERCISE,
             self.exerciseOption(),
-            1
         ))
 
     def generateRandomOption(self) -> float:

@@ -1,3 +1,4 @@
+import numpy as np
 from simulation.option_pool import OptionPool
 from data_classes.transaction import Transaction, TransactionAction
 
@@ -27,7 +28,7 @@ class LiquidityProvider:
         # uniform distribution
         s = np.random.uniform(low=70.0, high=120.0)
         
-        profit = profit - s
+        self.profit -= s
         return s
 
 
@@ -38,5 +39,5 @@ class LiquidityProvider:
         # uniform distribution
         s = np.random.uniform(low=50.0, high=100.0)
 
-        profit = profit + s
+        self.profit += s
         return s
