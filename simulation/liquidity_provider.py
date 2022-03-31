@@ -21,8 +21,17 @@ class LiquidityProvider:
 
     def generateRandomDepositValue(self) -> float:
         # TODO
-        return 100.0
+        # return 100.0
+
+        # uniform distribution
+        s = np.random.uniform(low=70.0, high=120.0)
+        return s
+
 
     def generateRandomWithdrawValue(self) -> float:
         # TODO
-        return 15.0
+        # return 15.0
+
+        # uniform distribution
+        s = np.random.uniform(low=50.0, high=100.0)
+        return s
