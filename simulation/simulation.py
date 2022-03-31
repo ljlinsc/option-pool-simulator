@@ -1,9 +1,9 @@
 import random
 from typing import List
 
-from liquidity_provider import LiquidityProvider
-from option_pool import OptionPool
-from transaction import Transaction
+from simulation.liquidity_provider import LiquidityProvider
+from simulation.option_pool import OptionPool
+from data_classes.transaction import Transaction
 
 class Simulation:
     def __init__(self, num_liquidity_providers: int, underlying_asset: str, num_epochs: int, size_of_pool: int) -> None:
@@ -28,6 +28,5 @@ class Simulation:
             random.shuffle(self.actors)
             for actor in self.actors:
                 transactions.append(actor.end_epoch(epoch))
-                
 
         return transactions

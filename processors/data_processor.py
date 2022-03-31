@@ -1,5 +1,5 @@
-from epoch import Epoch
-from transaction import Transaction, TransactionAction
+from data_classes.epoch import Epoch
+from data_classes.transaction import Transaction, TransactionAction
 from typing import List
 
 class DataProcessor:
@@ -13,11 +13,10 @@ class DataProcessor:
 
         # Total profit for each epoch
         for transaction in self.transactions:
-            total_value = transaction.value * transaction.quantity
             if transaction.action == TransactionAction.DEPOSIT:
-                epochs[transaction.epoch].total_profit += total_value
+                epochs[transaction.epoch].total_profit += transaction.value
             elif transaction.action == TransactionAction.WITHDRAW:
-                epochs[transaction.epoch].total_profit -= total_value
+                epochs[transaction.epoch].total_profit -= transaction.value
         
         # Total value locked at the end of each epoch
         epochs[0].total_value_locked = epochs[0].total_profit

@@ -3,13 +3,12 @@ from numpy import around
 from random import randint
 from collections import Counter
 
-class FindProfit:
+class CSVProcessor:
     def __init__(self, size_of_pool: float) -> None:
         self.size_of_pool = size_of_pool
     
     def calc_profit(self, size_of_pool: float) -> float:
-        optchain = "chaincsv1.csv"
-        chain = pd.read_csv(optchain)
+        chain = pd.read_csv("data/chaincsv1.csv")
         sizecounter = 0
         totallpprofit = 0
         collateralcounter = 0

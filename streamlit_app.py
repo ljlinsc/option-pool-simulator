@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from find_profit import FindProfit
-from simulation import Simulation
-from data_processor import DataProcessor
+from processors.csv_processor import CSVProcessor
+from simulation.simulation import Simulation
+from processors.data_processor import DataProcessor
 
 # PAGE CONFIGURATION
 
@@ -65,23 +65,17 @@ if submitted:
         size_of_pool
     )
     transactions = sim.run()
-    
-    fp = FindProfit(
-        size_of_pool        
-    )
-    
-    totallpprofit = fp.calc_profit(size_of_pool)
+
     data_processor = DataProcessor(num_epochs, transactions, size_of_pool)
+    csv_processor = CSVProcessor(size_of_pool)
     data_by_epoch = alt.Data(values=[epoch.__dict__ for epoch in data_processor.getEpochs()])
-    
-    
 
     # OUTPUT
 
     st.header('Simulation Results')
-    subhea = ("Profit of LPs:" , totallpprofit)
-    st.subheader(subhea)
-    
+
+    with st.container():
+        st.subheader('Profit of LPs: ' + '${:.2f}'.format(csv_processor.calc_profit(size_of_pool)))
 
     with st.container():
         st.subheader('Total value locked in the option pool')

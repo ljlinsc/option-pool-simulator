@@ -1,5 +1,5 @@
-from option_pool import OptionPool
-from transaction import Transaction, TransactionAction
+from simulation.option_pool import OptionPool
+from data_classes.transaction import Transaction, TransactionAction
 
 class LiquidityProvider:
     def __init__(self, option_pool: OptionPool) -> None:
@@ -10,8 +10,6 @@ class LiquidityProvider:
             epoch,
             TransactionAction.DEPOSIT,
             self.generateRandomDepositValue(),
-            #make it self. getDepositValue and code it
-            1
         ))
 
     def end_epoch(self, epoch: int) -> Transaction:
@@ -19,7 +17,6 @@ class LiquidityProvider:
             epoch,
             TransactionAction.WITHDRAW,
             self.generateRandomWithdrawValue(),
-            1
         ))
 
     def generateRandomDepositValue(self) -> float:
