@@ -9,6 +9,7 @@ class TransactionAction(Enum):
     # for purchasers
     PURCHASE = auto()
     EXERCISE = auto()
+    REJECT = auto()
 
 @dataclass
 class Transaction:

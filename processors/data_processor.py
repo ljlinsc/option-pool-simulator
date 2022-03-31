@@ -17,6 +17,10 @@ class DataProcessor:
                 epochs[transaction.epoch].total_profit += transaction.value
             elif transaction.action == TransactionAction.WITHDRAW:
                 epochs[transaction.epoch].total_profit -= transaction.value
+            elif transaction.action == TransactionAction.PURCHASE:
+                epochs[transaction.epoch].total_profit += transaction.value
+            elif transaction.action == TransactionAction.EXERCISE:
+                epochs[transaction.epoch].total_profit -= transaction.value
         
         # Total value locked at the end of each epoch
         epochs[0].total_value_locked = epochs[0].total_profit

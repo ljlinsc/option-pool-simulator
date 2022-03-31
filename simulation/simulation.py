@@ -19,7 +19,7 @@ class Simulation:
 
         # Create purchasers
         for i in range(num_purchasers):
-            self.actors.append(Purchaser(self.option_pool))
+            self.actors.append(Purchaser(i, self.option_pool))
 
     def run(self) -> List[Transaction]:
         transactions: List[Transaction] = []
