@@ -4,6 +4,7 @@ from transaction import Transaction, TransactionAction
 class Purchaser:
     def __init__(self, option_pool: OptionPool) -> None:
         self.option_pool = option_pool
+        self.profit = 0
 
     def start_epoch(self, epoch: int) -> Transaction:
         return self.option_pool.execute_transaction(Transaction(
