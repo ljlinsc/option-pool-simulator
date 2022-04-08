@@ -15,7 +15,7 @@ class OptionPool:
             self.total_value_locked -= transaction.value
         return transaction
 
-    def purchase_call_option(self, epoch: int, purchaser_id: int, strike_price: float) -> Transaction:
+    def purchase_call_option(self, date: str, purchaser_id: int, strike_price: float) -> Transaction:
         if self.total_value_locked - self.total_collateral_locked >= strike_price:
             premium = self.calculate_call_option_premium(strike_price)
             self.total_value_locked += premium
@@ -26,18 +26,18 @@ class OptionPool:
                 premium
             )
             return Transaction(
-                epoch,
+                date,
                 TransactionAction.PURCHASE,
                 premium
             )
         else:
             return Transaction(
-                epoch,
+                date,
                 TransactionAction.REJECT,
                 0.0
             )
 
-    def exercise_call_option(self, epoch: int, purchaser_id: int) -> Transaction:
+    def exercise_call_option(self, date: str, purchaser_id: int) -> Transaction:
         strike_price = self.options[purchaser_id].strike_price
         self.total_collateral_locked -= strike_price
         self.options.pop(purchaser_id)
@@ -46,14 +46,14 @@ class OptionPool:
             # Price of the underlying asset increases and the purchaser exercises
             self.total_value_locked -= strike_price
             return Transaction(
-                epoch,
+                date,
                 TransactionAction.EXERCISE,
                 strike_price
             )
         else:
             # Price of the underlying asset decreases and the purchaser does not exercise
             return Transaction(
-                epoch,
+                date,
                 TransactionAction.EXERCISE,
                 0.0
             )

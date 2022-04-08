@@ -5,8 +5,12 @@ import pandas as pd
 import streamlit as st
 
 from processors.csv_processor import CSVProcessor
+from processors.txt_processor import TXTProcessor
 from simulation.simulation import Simulation
 from processors.data_processor import DataProcessor
+
+txt_processor = TXTProcessor()
+dates = txt_processor.getDates()
 
 # PAGE CONFIGURATION
 
@@ -43,14 +47,13 @@ with st.sidebar.form('input_parameters'):
         'Type of option',
         ('Call option', 'Put option')
     )
-    num_epochs = st.number_input(
-        'Number of epochs',
-        min_value=1,
-        value=10
+    start_week = st.selectbox(
+        'Start week',
+        dates
     )
-    epoch_type = st.radio(
-        'Type of epoch',
-        ('Week', 'Month')
+    end_week = st.selectbox(
+        'End week',
+        dates
     )
     submitted = st.form_submit_button('Run')
 
@@ -58,18 +61,21 @@ if submitted:
 
     # SIMULATION
 
+    epoch_dates = dates[dates.index(start_week):dates.index(end_week) + 1]
+
     sim = Simulation(
         num_liquidity_providers,
         num_purchasers,
         underlying_asset,
-        num_epochs,
+        epoch_dates,
         size_of_pool
     )
     transactions = sim.run()
 
-    data_processor = DataProcessor(num_epochs, transactions, size_of_pool)
+    data_processor = DataProcessor(epoch_dates, transactions, size_of_pool)
     csv_processor = CSVProcessor(size_of_pool)
     data_by_epoch = alt.Data(values=[epoch.__dict__ for epoch in data_processor.getEpochs()])
+    print(data_by_epoch)
 
     # OUTPUT
 
@@ -86,6 +92,6 @@ if submitted:
             interpolate='step-after',
             line=True
         ).encode(
-            x=alt.X('epoch:O', axis=alt.Axis(title='Epoch')),
+            x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
             y=alt.Y('total_value_locked:Q', axis=alt.Axis(format='$.2f', title='Total value locked in the option pool (USD)'))
         ), use_container_width=True)

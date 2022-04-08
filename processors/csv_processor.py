@@ -8,20 +8,20 @@ class CSVProcessor:
         self.size_of_pool = size_of_pool
     
     def calc_profit(self, size_of_pool: float) -> float:
-        chain = pd.read_csv("data/chaincsv1.csv")
+        chain = pd.read_csv("data/chaincsv1weeklychainst20200418.csv")
         sizecounter = 0
         totallpprofit = 0
         collateralcounter = 0
         totalbuyerprofit = 0
 
-        maxprice = chain.iloc[0]['sprice']
+        maxprice = chain.iloc[0]['soptprice']
         strikes = []
 
         while(sizecounter + maxprice < size_of_pool):
             rint = randint(0,58)
             strikes.append(chain.iloc[rint]['strike'])
-            totallpprofit += chain.iloc[rint]['trueprofit']
-            sizecounter += chain.iloc[rint]['sprice']
+            totallpprofit += chain.iloc[rint]['truelpprofit']
+            sizecounter += chain.iloc[rint]['soptprice']
             collateralcounter += chain.iloc[rint]['spot']
             totalbuyerprofit += chain.iloc[rint]['buyerprofit']
         

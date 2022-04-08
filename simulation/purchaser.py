@@ -9,17 +9,17 @@ class Purchaser:
         self.option_pool = option_pool
         self.profit = 0
 
-    def start_epoch(self, epoch: int) -> Transaction:
+    def start_epoch(self, date: str) -> Transaction:
         return self.option_pool.purchase_call_option(
-            epoch,
+            date,
             self.id,
             self.generateRandomOption()
         )
 
 
-    def end_epoch(self, epoch: int) -> Transaction:
+    def end_epoch(self, date: str) -> Transaction:
         return self.option_pool.exercise_call_option(
-            epoch,
+            date,
             self.id
         )
 

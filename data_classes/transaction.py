@@ -13,6 +13,6 @@ class TransactionAction(Enum):
 
 @dataclass
 class Transaction:
-    epoch: int
+    date: str
     action: TransactionAction
     value: float
