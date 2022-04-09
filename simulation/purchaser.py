@@ -1,4 +1,6 @@
+import random
 import numpy as np
+from processors.csv_processor import CSVProcessor
 
 from simulation.option_pool import OptionPool
 from data_classes.transaction import Transaction, TransactionAction
@@ -13,9 +15,8 @@ class Purchaser:
         return self.option_pool.purchase_call_option(
             date,
             self.id,
-            self.generateRandomOption()
+            self.generate_random_option(date)
         )
-
 
     def end_epoch(self, date: str) -> Transaction:
         return self.option_pool.exercise_call_option(
@@ -23,7 +24,7 @@ class Purchaser:
             self.id
         )
 
-    def generateRandomOption(self) -> float:
+    def generate_random_option(self, date: str) -> float:
         # TO DO
         ''' 
             - search CSV file for 'current date'
@@ -31,9 +32,12 @@ class Purchaser:
             - have purchaser pay for the premium
             - assign option to the purchaser
         '''
-        return 0.0
+        '''
+        Randomly pick a number from [0, 58) to 
+        '''
+        return random.randrange(58)
 
-    def exerciseOption(self) -> float:
+    def exercise_option(self) -> float:
         # TO DO
         '''
             - end of epoch, unassign option from purchaser

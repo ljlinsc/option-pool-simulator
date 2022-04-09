@@ -2,11 +2,9 @@ import pandas as pd
 from numpy import around
 from random import randint
 from collections import Counter
+from typing import List
 
 class CSVProcessor:
-    def __init__(self, size_of_pool: float) -> None:
-        self.size_of_pool = size_of_pool
-    
     def calc_profit(self, size_of_pool: float) -> float:
         chain = pd.read_csv("data/chaincsv1weeklychainst20200418.csv")
         sizecounter = 0
@@ -27,3 +25,17 @@ class CSVProcessor:
         
         totallpprofit = around((totallpprofit*100)/100)
         return totallpprofit
+    
+    def get_strike_prices(self, date: str) -> List[float]:
+        chain = pd.read_csv('data/chaincsv1weeklychainst' + date.replace('-', '') + '.csv')
+        strike_prices = [chain.iloc[i]['strike'] for i in range(58)]
+        return strike_prices
+
+    def get_premium_prices(self, date: str) -> List[float]:
+        chain = pd.read_csv('data/chaincsv1weeklychainst' + date.replace('-', '') + '.csv')
+        premium_prices = [chain.iloc[i]['soptprice'] for i in range(58)]
+        return premium_prices
+
+    def get_end_underlying_asset_price(self, date: str) -> float:
+        chain = pd.read_csv('data/chaincsv1weeklychainst' + date.replace('-', '') + '.csv')
+        return chain.iloc[0]['endethprice']

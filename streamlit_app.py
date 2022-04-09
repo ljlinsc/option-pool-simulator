@@ -73,16 +73,15 @@ if submitted:
     transactions = sim.run()
 
     data_processor = DataProcessor(epoch_dates, transactions, size_of_pool)
-    csv_processor = CSVProcessor(size_of_pool)
+    csv_processor = CSVProcessor()
     data_by_epoch = alt.Data(values=[epoch.__dict__ for epoch in data_processor.getEpochs()])
-    print(data_by_epoch)
 
     # OUTPUT
 
     st.header('Simulation Results')
 
-    with st.container():
-        st.subheader('Profit of LPs: ' + '${:.2f}'.format(csv_processor.calc_profit(size_of_pool)))
+    # with st.container():
+    #     st.subheader('Profit of LPs: ' + '${:.2f}'.format(csv_processor.calc_profit(size_of_pool)))
 
     with st.container():
         st.subheader('Total value locked in the option pool')
