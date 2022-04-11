@@ -1,71 +1,63 @@
 from data_classes.option import Option, OptionType
-from data_classes.transaction import Transaction, TransactionAction
+from data_classes.transaction import Asset
 from processors.csv_processor import CSVProcessor
 
-class OptionPool:
-    def __init__(self, underlying_asset: str) -> None:
-        self.underlying_asset = underlying_asset
-        self.total_value_locked = 0.0
-        self.total_collateral_locked = 0.0
-        self.options = dict() # maps the purchaser's id to their option
-        self.csv_processor = CSVProcessor()
-    
-    def execute_transaction(self, transaction: Transaction) -> Transaction:
-        if transaction.action == TransactionAction.DEPOSIT:
-            self.total_value_locked += transaction.value
-        elif transaction.action == TransactionAction.WITHDRAW:
-            self.total_value_locked -= transaction.value
-        return transaction
 
-    def purchase_call_option(self, date: str, purchaser_id: int, option_num: int) -> Transaction:
-        strike_price = self.csv_processor.get_strike_prices(date)[option_num]
-        if self.total_value_locked - self.total_collateral_locked >= strike_price:
-            premium = self.csv_processor.get_premium_prices(date)[option_num]
-            self.total_value_locked += premium
-            self.total_collateral_locked += strike_price
+class OptionPool:
+    def __init__(self) -> None:
+        self.total_underlying_asset = 0.0
+        self.total_underlying_asset_locked = 0.0
+        self.total_usdt = 0.0
+        self.options = dict()
+        self.csv_processor = CSVProcessor()
+        self.end_of_epoch_tvls = []
+
+    def deposit(self, value: float, asset: Asset) -> None:
+        if asset == Asset.USDT:
+            self.total_usdt += value
+        else:
+            self.total_underlying_asset += value
+
+    def withdraw(self, value: float, asset: Asset) -> None:
+        if asset == Asset.USDT:
+            self.total_usdt -= value
+        else:
+            self.total_underlying_asset -= value
+
+    def purchase_call_option(
+        self,
+        date: str,
+        purchaser_id: int,
+        option_index: int
+    ) -> None:
+        if self.total_underlying_asset - self.total_underlying_asset_locked > 0:
+            '''
+            If at least 1 of the underlying asset (e.g. 1 ETH) is available in
+            the option pool, then that asset will be locked, and the Purchaser
+            will pay the premium.
+            '''
+            strike = self.csv_processor.get_strike_price(date, option_index)
+            premium = self.csv_processor.get_premium(date, option_index)
+            self.total_underlying_asset_locked -= 1
+            self.total_usdt += premium
             self.options[purchaser_id] = Option(
                 OptionType.CALL,
-                strike_price,
+                option_index,
+                strike,
                 premium
             )
-            return Transaction(
-                date,
-                TransactionAction.PURCHASE,
-                premium
-            )
-        else:
-            return Transaction(
-                date,
-                TransactionAction.REJECT,
-                0.0
-            )
 
-    def exercise_call_option(self, date: str, purchaser_id: int) -> Transaction:
-        if purchaser_id not in self.options.keys():
-            return Transaction(
-                date,
-                TransactionAction.EXERCISE,
-                0.0
-            )
-        strike_price = self.options[purchaser_id].strike_price
-        self.total_collateral_locked -= strike_price
-        self.options.pop(purchaser_id)
+    def exercise_call_option(self, date: str, purchaser_id: int) -> None:
+        if purchaser_id in self.options.keys():
+            strike = self.options.pop(purchaser_id).strike
+            if strike <= self.csv_processor.get_end_eth_price(date):
+                # Option is exercised
+                self.total_underlying_asset -= 1
+                self.total_underlying_asset_locked -= 1
 
-        if self.get_underlying_asset_price(date) >= strike_price:
-            # Price of the underlying asset increases and the purchaser exercises
-            self.total_value_locked -= strike_price
-            return Transaction(
-                date,
-                TransactionAction.EXERCISE,
-                strike_price
-            )
-        else:
-            # Price of the underlying asset decreases and the purchaser does not exercise
-            return Transaction(
-                date,
-                TransactionAction.EXERCISE,
-                0.0
-            )
-
-    def get_underlying_asset_price(self, date: str) -> float:
-        return self.csv_processor.get_end_underlying_asset_price(date)
+    def convert_usdt_to_underlying_asset(self, date: str) -> None:
+        end_eth_price = self.csv_processor.get_end_eth_price(date)
+        self.total_underlying_asset += self.total_usdt / end_eth_price
+        self.total_usdt = 0
+        self.end_of_epoch_tvls.append(
+            end_eth_price * self.total_underlying_asset)

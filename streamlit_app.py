@@ -39,14 +39,6 @@ with st.sidebar.form('input_parameters'):
         min_value=1,
         value=100000
     )
-    underlying_asset = st.selectbox(
-        'Underlying asset',
-        ('ETH', 'USD')
-    )
-    option_type = st.radio(
-        'Type of option',
-        ('Call option', 'Put option')
-    )
     start_week = st.selectbox(
         'Start week',
         dates
@@ -66,15 +58,15 @@ if submitted:
     sim = Simulation(
         num_liquidity_providers,
         num_purchasers,
-        underlying_asset,
         epoch_dates,
         size_of_pool
     )
-    transactions = sim.run()
+    option_pool = sim.run()
 
-    data_processor = DataProcessor(epoch_dates, transactions, size_of_pool)
     csv_processor = CSVProcessor()
-    data_by_epoch = alt.Data(values=[epoch.__dict__ for epoch in data_processor.getEpochs()])
+    data_processor = DataProcessor(epoch_dates, option_pool, size_of_pool)
+    data_by_epoch = alt.Data(
+        values=[epoch.__dict__ for epoch in data_processor.getEpochs()])
 
     # OUTPUT
 
@@ -92,5 +84,6 @@ if submitted:
             line=True
         ).encode(
             x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
-            y=alt.Y('total_value_locked:Q', axis=alt.Axis(format='$.2f', title='Total value locked in the option pool (USD)'))
+            y=alt.Y('total_value_locked:Q', axis=alt.Axis(format='$.2f',
+                    title='Total value locked in the option pool (USD)'))
         ), use_container_width=True)
