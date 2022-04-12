@@ -1,3 +1,4 @@
+from data_classes.epoch import Epoch
 from data_classes.option import Option, OptionType
 from data_classes.transaction import Asset
 from processors.csv_processor import CSVProcessor
@@ -10,7 +11,7 @@ class OptionPool:
         self.total_usdt = 0.0
         self.options = dict()
         self.csv_processor = CSVProcessor()
-        self.end_of_epoch_tvls = []
+        self.epochs = []
 
     def deposit(self, value: float, asset: Asset) -> None:
         if asset == Asset.USDT:
@@ -68,8 +69,20 @@ class OptionPool:
         end_eth_price = self.csv_processor.get_end_eth_price(date)
         self.total_underlying_asset += self.total_usdt / end_eth_price
         self.total_usdt = 0
-        self.end_of_epoch_tvls.append(
-            end_eth_price * self.total_underlying_asset)
+
+    def calculate_epoch_statistics(self, date: str) -> None:
+        end_eth_price = self.csv_processor.get_end_eth_price(date)
+        total_value_locked = end_eth_price * self.total_underlying_asset
+        if len(self.epochs) == 0:
+            total_profit = total_value_locked
+        else:
+            total_profit = total_value_locked - \
+                self.epochs[-1].total_value_locked
+        self.epochs.append(Epoch(
+            date,
+            total_value_locked,
+            total_profit
+        ))
 
     def calculate_lowest_strike(self, date: str) -> float:
         return 0.0  # TODO

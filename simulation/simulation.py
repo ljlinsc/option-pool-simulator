@@ -46,4 +46,7 @@ class Simulation:
             # Remaining USDT in the option pool is converted to the underlying
             self.option_pool.convert_usdt_to_underlying_asset(date)
 
+            # Calculate end of the epoch statistics
+            self.option_pool.calculate_epoch_statistics(date)
+
         return self.option_pool

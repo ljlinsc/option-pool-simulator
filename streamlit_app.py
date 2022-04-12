@@ -62,7 +62,7 @@ if submitted:
     csv_processor = CSVProcessor()
     data_processor = DataProcessor(epoch_dates, option_pool)
     data_by_epoch = alt.Data(
-        values=[epoch.__dict__ for epoch in data_processor.getEpochs()])
+        values=[epoch.__dict__ for epoch in option_pool.epochs])
 
     # OUTPUT
 
@@ -78,5 +78,18 @@ if submitted:
         ).encode(
             x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
             y=alt.Y('total_value_locked:Q', axis=alt.Axis(format='$.2f',
-                    title='Total value locked in the option pool (USD)'))
+                    title='Total value locked in the option pool (USDT)'))
+        ), use_container_width=True)
+
+    with st.container():
+        st.subheader('Total profit in the epoch in the option pool')
+
+        st.altair_chart(alt.Chart(data_by_epoch).mark_area(
+            color="lightblue",
+            interpolate='step-after',
+            line=True
+        ).encode(
+            x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
+            y=alt.Y('total_profit:Q', axis=alt.Axis(format='$.2f',
+                    title='Total profit in the epoch in the option pool (USDT)'))
         ), use_container_width=True)
