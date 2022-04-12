@@ -33,6 +33,8 @@ class Simulation:
     def run(self) -> OptionPool:
         # Run simulation
         for date in self.epoch_dates:
+            self.option_pool.initialize_epoch_statistics(date)
+
             # Each actor takes an action at the start of the epoch
             random.shuffle(self.actors)
             for actor in self.actors:
@@ -43,10 +45,8 @@ class Simulation:
             for actor in self.actors:
                 actor.end_epoch(date)
 
-            # Remaining USDT in the option pool is converted to the underlying
+            self.option_pool.unlock_underlying_assets()
             self.option_pool.convert_usdt_to_underlying_asset(date)
-
-            # Calculate end of the epoch statistics
-            self.option_pool.calculate_epoch_statistics(date)
+            self.option_pool.calculate_epoch_statistics()
 
         return self.option_pool

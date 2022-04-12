@@ -71,25 +71,52 @@ if submitted:
     with st.container():
         st.subheader('Total value locked in the option pool')
 
-        st.altair_chart(alt.Chart(data_by_epoch).mark_area(
-            color="lightblue",
-            interpolate='step-after',
-            line=True
-        ).encode(
+        st.altair_chart(alt.Chart(data_by_epoch).mark_bar().encode(
             x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
             y=alt.Y('total_value_locked:Q', axis=alt.Axis(format='$.2f',
-                    title='Total value locked in the option pool (USDT)'))
+                    title='Total value locked (USDT)')),
+            color=alt.condition(
+                alt.datum.total_value_locked > 0,
+                alt.value("green"),
+                alt.value("red")
+            )
         ), use_container_width=True)
 
     with st.container():
-        st.subheader('Total profit in the epoch in the option pool')
+        st.subheader('Total option pool profit by epoch')
 
-        st.altair_chart(alt.Chart(data_by_epoch).mark_area(
-            color="lightblue",
-            interpolate='step-after',
-            line=True
-        ).encode(
+        st.altair_chart(alt.Chart(data_by_epoch).mark_bar().encode(
             x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
             y=alt.Y('total_profit:Q', axis=alt.Axis(format='$.2f',
-                    title='Total profit in the epoch in the option pool (USDT)'))
+                    title='Total profit (USDT)')),
+            color=alt.condition(
+                alt.datum.total_profit > 0,
+                alt.value("green"),
+                alt.value("red")
+            )
+        ), use_container_width=True)
+
+    with st.container():
+        st.subheader('Total liquidity provider profit by epoch')
+
+        st.altair_chart(alt.Chart(data_by_epoch).mark_bar().encode(
+            x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
+            y=alt.Y('total_lp_profit:Q', axis=alt.Axis(format='$.2f',
+                    title='Total liquidity provider profit (USDT)')),
+            color=alt.condition(
+                alt.datum.total_lp_profit > 0,
+                alt.value("green"),
+                alt.value("red")
+            )
+        ), use_container_width=True)
+
+    with st.container():
+        st.subheader('Price of ETH')
+
+        st.altair_chart(alt.Chart(data_by_epoch).mark_line(
+            color="gray"
+        ).encode(
+            x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
+            y=alt.Y('end_eth_price:Q', axis=alt.Axis(format='$.2f',
+                    title='USDT'))
         ), use_container_width=True)

@@ -6,7 +6,7 @@ from processors.csv_processor import CSVProcessor
 
 class OptionPool:
     def __init__(self) -> None:
-        self.total_underlying_asset = 0.0
+        self.total_underlying_asset_unlocked = 0.0
         self.total_underlying_asset_locked = 0.0
         self.total_usdt = 0.0
         self.options = dict()
@@ -17,13 +17,15 @@ class OptionPool:
         if asset == Asset.USDT:
             self.total_usdt += value
         else:
-            self.total_underlying_asset += value
+            self.total_underlying_asset_unlocked += value
 
     def withdraw(self, value: float, asset: Asset) -> None:
         if asset == Asset.USDT:
-            self.total_usdt -= value
+            if self.total_usdt >= value:
+                self.total_usdt -= value
         else:
-            self.total_underlying_asset -= value
+            if self.total_underlying_asset_unlocked >= value:
+                self.total_underlying_asset_unlocked -= value
 
     def purchase_call_option(
         self,
@@ -32,12 +34,7 @@ class OptionPool:
         option_index: int,  # TODO Remove after implementing strike price calculator
         value: float
     ) -> None:
-        if self.total_underlying_asset - self.total_underlying_asset_locked > 0:
-            '''
-            If at least 1 of the underlying asset (e.g. 1 ETH) is available in
-            the option pool, then that asset will be locked, and the Purchaser
-            will pay the premium.
-            '''
+        if self.total_underlying_asset_unlocked > 0:
             strike = self.calculate_strike_price(
                 value,
                 date,
@@ -48,8 +45,15 @@ class OptionPool:
                 strike,
                 option_index  # TODO Remove after implementing strike price calculator
             )
-            self.total_underlying_asset_locked -= 1
+
+            # Lock the underlying asset
+            self.total_underlying_asset_unlocked -= 1
+            self.total_underlying_asset_locked += 1
+
+            # Pay the premium
             self.total_usdt += premium
+
+            # Store the option details
             self.options[purchaser_id] = Option(
                 OptionType.CALL,
                 option_index,
@@ -57,32 +61,25 @@ class OptionPool:
                 premium
             )
 
+            # Epoch statistics
+            self.epochs[-1].total_lp_profit += premium
+
     def exercise_call_option(self, date: str, purchaser_id: int) -> None:
         if purchaser_id in self.options.keys():
             strike = self.options.pop(purchaser_id).strike
             if strike <= self.csv_processor.get_end_eth_price(date):
                 # Option is exercised
-                self.total_underlying_asset -= 1
                 self.total_underlying_asset_locked -= 1
+                self.epochs[-1].total_lp_profit -= self.epochs[-1].end_eth_price
+
+    def unlock_underlying_assets(self) -> None:
+        self.total_underlying_asset_unlocked += self.total_underlying_asset_locked
+        self.total_underlying_asset_locked = 0.0
 
     def convert_usdt_to_underlying_asset(self, date: str) -> None:
-        end_eth_price = self.csv_processor.get_end_eth_price(date)
-        self.total_underlying_asset += self.total_usdt / end_eth_price
+        self.total_underlying_asset_unlocked += self.total_usdt / \
+            self.csv_processor.get_end_eth_price(date)
         self.total_usdt = 0
-
-    def calculate_epoch_statistics(self, date: str) -> None:
-        end_eth_price = self.csv_processor.get_end_eth_price(date)
-        total_value_locked = end_eth_price * self.total_underlying_asset
-        if len(self.epochs) == 0:
-            total_profit = total_value_locked
-        else:
-            total_profit = total_value_locked - \
-                self.epochs[-1].total_value_locked
-        self.epochs.append(Epoch(
-            date,
-            total_value_locked,
-            total_profit
-        ))
 
     def calculate_lowest_strike(self, date: str) -> float:
         return 0.0  # TODO
@@ -116,3 +113,24 @@ class OptionPool:
         premium in USDT based on values from the CSVs.
         '''
         return self.csv_processor.get_premium(date, option_index)  # FIXME
+
+    def initialize_epoch_statistics(self, date: str) -> None:
+        self.epochs.append(Epoch(
+            date,
+            self.csv_processor.get_end_eth_price(date),
+            0.0,
+            0.0,
+            0.0
+        ))
+
+    def calculate_epoch_statistics(self) -> None:
+        # Calculate the total value locked in the option pool (USDT)
+        self.epochs[-1].total_value_locked = self.epochs[-1].end_eth_price * \
+            self.total_underlying_asset_unlocked
+
+        # Calculate the total profit of the option pool (USDT)
+        if len(self.epochs) == 1:
+            self.epochs[-1].total_profit = self.epochs[-1].total_value_locked
+        else:
+            self.epochs[-1].total_profit = self.epochs[-1].total_value_locked - \
+                self.epochs[-2].total_value_locked
