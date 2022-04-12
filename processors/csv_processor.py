@@ -31,7 +31,6 @@ class CSVProcessor:
         return pd.read_csv('data/chaincsv1weeklychainst' + date.replace('-', '') + '.csv')
 
     def get_weekly_chain_property(self, date: str, option_index: int, property: str) -> float:
-        print(option_index, property)
         return self.get_weekly_chain(date).iloc[option_index][property]
 
     def get_strike_price(self, date: str, option_index: int) -> float:

@@ -1,5 +1,6 @@
 import random
 from typing import List
+from data_classes.distribution import Distribution
 
 from simulation.liquidity_provider import LiquidityProvider
 from simulation.option_pool import OptionPool
@@ -7,11 +8,17 @@ from simulation.purchaser import Purchaser
 
 
 class Simulation:
-    def __init__(self, num_liquidity_providers: int, num_purchasers: int, epoch_dates: List[str], size_of_pool: int) -> None:
+    def __init__(
+        self,
+        num_liquidity_providers: int,
+        num_purchasers: int,
+        epoch_dates: List[str],
+        purchaser_distribution: Distribution
+    ) -> None:
         self.actors = []
         self.option_pool = OptionPool()
         self.epoch_dates = epoch_dates
-        self.size_of_pool = size_of_pool
+        self.purchaser_distribution = purchaser_distribution
 
         # Create liquidity providers
         for i in range(num_liquidity_providers):
@@ -19,7 +26,9 @@ class Simulation:
 
         # Create purchasers
         for i in range(num_purchasers):
-            self.actors.append(Purchaser(i, self.option_pool))
+            self.actors.append(
+                Purchaser(i, self.option_pool, self.purchaser_distribution)
+            )
 
     def run(self) -> OptionPool:
         # Run simulation

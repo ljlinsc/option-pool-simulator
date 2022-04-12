@@ -28,7 +28,8 @@ class OptionPool:
         self,
         date: str,
         purchaser_id: int,
-        option_index: int
+        option_index: int,  # TODO Remove after implementing strike price calculator
+        value: float
     ) -> None:
         if self.total_underlying_asset - self.total_underlying_asset_locked > 0:
             '''
@@ -36,8 +37,16 @@ class OptionPool:
             the option pool, then that asset will be locked, and the Purchaser
             will pay the premium.
             '''
-            strike = self.csv_processor.get_strike_price(date, option_index)
-            premium = self.csv_processor.get_premium(date, option_index)
+            strike = self.calculate_strike_price(
+                value,
+                date,
+                option_index  # TODO Remove after implementing strike price calculator
+            )
+            premium = self.calculate_premium(
+                date,
+                strike,
+                option_index  # TODO Remove after implementing strike price calculator
+            )
             self.total_underlying_asset_locked -= 1
             self.total_usdt += premium
             self.options[purchaser_id] = Option(
@@ -61,3 +70,36 @@ class OptionPool:
         self.total_usdt = 0
         self.end_of_epoch_tvls.append(
             end_eth_price * self.total_underlying_asset)
+
+    def calculate_lowest_strike(self, date: str) -> float:
+        return 0.0  # TODO
+
+    def calculate_highest_strike(self, date: str) -> float:
+        return 0.0  # TODO
+
+    def calculate_strike_price(
+        self,
+        value: float,
+        date: str,
+        option_index: int  # TODO Remove after implementing strike price calculator
+    ) -> float:
+        '''
+        TODO
+        Given a value in the range [0, 1] where 0 is the lowest possible strike
+        price and 1 is the highest possible strike price, return the
+        corresponding strike price.
+        '''
+        return self.csv_processor.get_strike_price(date, option_index)  # FIXME
+
+    def calculate_premium(
+        self,
+        date: str,
+        strike: float,
+        option_index: int  # TODO Remove after implementing strike price calculator
+    ) -> float:
+        '''
+        TODO
+        Given a date and a strike price, calculate the price of the option
+        premium in USDT based on values from the CSVs.
+        '''
+        return self.csv_processor.get_premium(date, option_index)  # FIXME

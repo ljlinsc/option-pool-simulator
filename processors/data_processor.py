@@ -5,10 +5,9 @@ from simulation.option_pool import OptionPool
 
 
 class DataProcessor:
-    def __init__(self, epoch_dates: List[str], option_pool: OptionPool, size_of_pool: int) -> None:
+    def __init__(self, epoch_dates: List[str], option_pool: OptionPool) -> None:
         self.epoch_dates = epoch_dates
         self.option_pool = option_pool
-        self.size_of_pool = size_of_pool
 
     def getEpochs(self) -> List[Epoch]:
         epochs: List[Epoch] = [Epoch(date, 0.0, 0.0)

@@ -3,6 +3,7 @@ import json
 import numpy as np
 import pandas as pd
 import streamlit as st
+from data_classes.distribution import Distribution
 
 from processors.csv_processor import CSVProcessor
 from processors.txt_processor import TXTProcessor
@@ -34,11 +35,6 @@ with st.sidebar.form('input_parameters'):
         min_value=1,
         value=3
     )
-    size_of_pool = st.number_input(
-        'Size in Dollars',
-        min_value=1,
-        value=100000
-    )
     start_week = st.selectbox(
         'Start week',
         dates
@@ -59,21 +55,18 @@ if submitted:
         num_liquidity_providers,
         num_purchasers,
         epoch_dates,
-        size_of_pool
+        Distribution.NORMAL
     )
     option_pool = sim.run()
 
     csv_processor = CSVProcessor()
-    data_processor = DataProcessor(epoch_dates, option_pool, size_of_pool)
+    data_processor = DataProcessor(epoch_dates, option_pool)
     data_by_epoch = alt.Data(
         values=[epoch.__dict__ for epoch in data_processor.getEpochs()])
 
     # OUTPUT
 
     st.header('Simulation Results')
-
-    # with st.container():
-    #     st.subheader('Profit of LPs: ' + '${:.2f}'.format(csv_processor.calc_profit(size_of_pool)))
 
     with st.container():
         st.subheader('Total value locked in the option pool')
