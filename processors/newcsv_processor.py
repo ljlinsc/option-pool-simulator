@@ -10,7 +10,7 @@ from datetime import timedelta
 
 class NEW_CSV_processor:
     def __init__(self) -> None:
-        self.data = pd.read_csv("/data/optdata.csv", index_col='Date', parse_dates = ['Date'])
+        self.data = pd.read_csv("data/optdata.csv", index_col='Date', parse_dates = ['Date'])
 
     
     def get_eth_price(self, date: str) -> float:
