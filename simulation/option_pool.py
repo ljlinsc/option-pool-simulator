@@ -2,6 +2,7 @@ from data_classes.epoch import Epoch
 from data_classes.option import Option, OptionType
 from data_classes.transaction import Asset
 from processors.csv_processor import CSVProcessor
+from processors.newcsv_processor import NEW_CSV_processor
 
 
 class OptionPool:
@@ -12,6 +13,7 @@ class OptionPool:
         self.options = dict()
         self.csv_processor = CSVProcessor()
         self.epochs = []
+        self.newcsv_processor = NEW_CSV_processor()
 
     def deposit(self, value: float, asset: Asset) -> None:
         if asset == Asset.USDT:
@@ -67,7 +69,7 @@ class OptionPool:
     def exercise_call_option(self, date: str, purchaser_id: int) -> None:
         if purchaser_id in self.options.keys():
             strike = self.options.pop(purchaser_id).strike
-            if strike <= self.csv_processor.get_end_eth_price(date):
+            if strike <= self.newcsv_processor.get_end_eth_price_wk(date):
                 # Option is exercised
                 self.total_underlying_asset_locked -= 1
                 self.epochs[-1].total_lp_profit -= self.epochs[-1].end_eth_price
@@ -78,14 +80,18 @@ class OptionPool:
 
     def convert_usdt_to_underlying_asset(self, date: str) -> None:
         self.total_underlying_asset_unlocked += self.total_usdt / \
-            self.csv_processor.get_end_eth_price(date)
+            self.newcsv_processor.get_end_eth_price_wk(date)
         self.total_usdt = 0
 
     def calculate_lowest_strike(self, date: str) -> float:
-        return 0.0  # TODO
+        lowstrike = self.newcsv_processor.get_spot(date)
+        lowstrike -= .5*lowstrike
+        return lowstrike  # TODO
 
     def calculate_highest_strike(self, date: str) -> float:
-        return 0.0  # TODO
+        highstrike = self.newcsv_processor.get_spot(date)
+        highstrike += .5*highstrike
+        return highstrike  # TODO
 
     def calculate_strike_price(
         self,
@@ -107,6 +113,8 @@ class OptionPool:
         strike: float,
         option_index: int  # TODO Remove after implementing strike price calculator
     ) -> float:
+        
+        
         '''
         TODO
         Given a date and a strike price, calculate the price of the option
@@ -117,7 +125,7 @@ class OptionPool:
     def initialize_epoch_statistics(self, date: str) -> None:
         self.epochs.append(Epoch(
             date,
-            self.csv_processor.get_end_eth_price(date),
+            self.newcsv_processor.get_end_eth_price_wk(date),
             0.0,
             0.0,
             0.0

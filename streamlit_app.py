@@ -9,6 +9,7 @@ from processors.csv_processor import CSVProcessor
 from processors.txt_processor import TXTProcessor
 from simulation.simulation import Simulation
 from processors.data_processor import DataProcessor
+from processors.newcsv_processor import NEW_CSV_processor
 
 txt_processor = TXTProcessor()
 dates = txt_processor.getDates()
@@ -60,6 +61,7 @@ if submitted:
     option_pool = sim.run()
 
     csv_processor = CSVProcessor()
+    newcsv_processor = NEW_CSV_processor()
     data_processor = DataProcessor(epoch_dates, option_pool)
     data_by_epoch = alt.Data(
         values=[epoch.__dict__ for epoch in option_pool.epochs])

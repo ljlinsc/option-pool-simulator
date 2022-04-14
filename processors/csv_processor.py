@@ -34,10 +34,11 @@ class CSVProcessor:
         return self.get_weekly_chain(date).iloc[option_index][property]
 
     def get_strike_price(self, date: str, option_index: int) -> float:
+        print(date)
         return self.get_weekly_chain_property(date, option_index, 'strike')
 
     def get_premium(self, date: str, option_index: int) -> float:
         return self.get_weekly_chain_property(date, option_index, 'soptprice')
 
     def get_end_eth_price(self, date: str) -> float:
-        return self.get_weekly_chain_property(date, 0, 'endethprice')
+        return self.get_weekly_chain_property(date, 0, 'endethprice')        
