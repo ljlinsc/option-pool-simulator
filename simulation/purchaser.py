@@ -38,4 +38,31 @@ class Purchaser:
         0 represents the most in-the-money strike price and 1 represents the
         most out-of-the-money strike price.
         '''
-        return random.randrange(58)  # FIXME
+        '''
+        picking a number from [0, 58)... will change later to match the above
+        '''
+
+        # uniform distribution
+        if self.distribution == PurchaserDist.UNIFORM:
+            s = np.random.uniform(low=0, high=57)
+
+        # normal distribution centered at the money
+        elif self.distribution == PurchaserDist.NORMAL:
+            s = np.random.normal(loc=28.5, scale=10.0)
+
+        # normal distribution centered in the money
+        elif self.distribution == PurchaserDist.SKEWIN:
+            s = np.random.normal(loc=14, scale=10.0)
+
+        # normal distribution centered out the money
+        elif self.distribution == PurchaserDist.SKEWOUT:
+            s = np.random.normal(loc=43, scale=10.0)
+
+        if s < 0:
+            s = 0
+        elif s > 57:
+            s = 57
+
+        s = round(s, 0)
+
+        return s

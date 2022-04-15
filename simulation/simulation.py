@@ -13,21 +13,21 @@ class Simulation:
         num_liquidity_providers: int,
         num_purchasers: int,
         epoch_dates: List[str],
-        purchaser_distribution: Distribution
+        distributions: Distribution
     ) -> None:
         self.actors = []
         self.option_pool = OptionPool()
         self.epoch_dates = epoch_dates
-        self.purchaser_distribution = purchaser_distribution
+        self.distributions = distributions
 
         # Create liquidity providers
         for i in range(num_liquidity_providers):
-            self.actors.append(LiquidityProvider(self.option_pool))
+            self.actors.append(LiquidityProvider(self.option_pool, self.distributions.lp_dist))
 
         # Create purchasers
         for i in range(num_purchasers):
             self.actors.append(
-                Purchaser(i, self.option_pool, self.purchaser_distribution)
+                Purchaser(i, self.option_pool, self.distributions.purchaser.dist)
             )
 
     def run(self) -> OptionPool:
