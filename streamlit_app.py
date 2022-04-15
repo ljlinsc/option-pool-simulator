@@ -56,7 +56,7 @@ if submitted:
         num_liquidity_providers,
         num_purchasers,
         epoch_dates,
-        Distribution.NORMAL
+        Distribution(PurchaserDist.NORMAL)
     )
     option_pool = sim.run()
 
