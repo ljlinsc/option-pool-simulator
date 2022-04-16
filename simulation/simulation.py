@@ -22,12 +22,14 @@ class Simulation:
 
         # Create liquidity providers
         for i in range(num_liquidity_providers):
-            self.actors.append(LiquidityProvider(self.option_pool, self.distributions.lp_dist))
+            self.actors.append(LiquidityProvider(
+                self.option_pool, self.distributions.lp_dist))
 
         # Create purchasers
         for i in range(num_purchasers):
             self.actors.append(
-                Purchaser(i, self.option_pool, self.distributions.purchaser.dist)
+                Purchaser(i, self.option_pool,
+                          self.distributions.purchaser_dist)
             )
 
     def run(self) -> OptionPool:

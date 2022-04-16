@@ -8,6 +8,7 @@ class PurchaserDist(Enum):
     SKEWIN = auto()
     SKEWOUT = auto()
 
+
 # liquidity provider distribution
 class LPDist(Enum):
     UNIFORM = auto()

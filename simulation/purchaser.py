@@ -1,5 +1,5 @@
-import random
-from data_classes.distribution import Distribution
+import numpy as np
+from data_classes.distribution import Distribution, PurchaserDist
 
 from simulation.option_pool import OptionPool
 

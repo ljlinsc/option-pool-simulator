@@ -1,44 +1,26 @@
+from datetime import timedelta
 import pandas as pd
-from numpy import around
-from random import randint
-from collections import Counter
-from typing import List
 
 
 class CSVProcessor:
-    def calc_profit(self, size_of_pool: float) -> float:
-        chain = pd.read_csv("data/chaincsv1weeklychainst20200418.csv")
-        sizecounter = 0
-        totallpprofit = 0
-        collateralcounter = 0
-        totalbuyerprofit = 0
+    def __init__(self) -> None:
+        self.data = pd.read_csv(
+            "data/optdata.csv", index_col='Date', parse_dates=['Date'])
 
-        maxprice = chain.iloc[0]['soptprice']
-        strikes = []
+    def get_eth_price(self, date: str) -> float:
+        date = pd.to_datetime(date)
+        return self.data.loc[date][2]
 
-        while(sizecounter + maxprice < size_of_pool):
-            rint = randint(0, 58)
-            strikes.append(chain.iloc[rint]['strike'])
-            totallpprofit += chain.iloc[rint]['truelpprofit']
-            sizecounter += chain.iloc[rint]['soptprice']
-            collateralcounter += chain.iloc[rint]['spot']
-            totalbuyerprofit += chain.iloc[rint]['buyerprofit']
+    def get_vol(self, date: str) -> float:
+        date = pd.to_datetime(date)
+        return self.data.loc[date][1]
 
-        totallpprofit = around((totallpprofit*100)/100)
-        return totallpprofit
+    def get_r(self, date: str) -> float:
+        date = pd.to_datetime(date)
 
-    def get_weekly_chain(self, date: str) -> pd.DataFrame:
-        return pd.read_csv('data/chaincsv1weeklychainst' + date.replace('-', '') + '.csv')
+        return self.data.loc[date][0]
 
-    def get_weekly_chain_property(self, date: str, option_index: int, property: str) -> float:
-        return self.get_weekly_chain(date).iloc[option_index][property]
-
-    def get_strike_price(self, date: str, option_index: int) -> float:
-        print(date)
-        return self.get_weekly_chain_property(date, option_index, 'strike')
-
-    def get_premium(self, date: str, option_index: int) -> float:
-        return self.get_weekly_chain_property(date, option_index, 'soptprice')
-
-    def get_end_eth_price(self, date: str) -> float:
-        return self.get_weekly_chain_property(date, 0, 'endethprice')        
+    def get_end_eth_price_wk(self, date: str) -> float:
+        date = pd.to_datetime(date)
+        enddate = date + timedelta(days=7)
+        return self.data.loc[enddate][2]
