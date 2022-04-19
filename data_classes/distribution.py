@@ -15,6 +15,7 @@ class LPDist(Enum):
 
 
 class Distribution:
-    def __init__(self, purchaser_dist: PurchaserDist) -> None:
+    def __init__(self, purchaser_dist: PurchaserDist, lp_dist: LPDist) -> None:
         self.purchaser_dist = purchaser_dist
-        self.lp_dist = LPDist.UNIFORM
+        self.lp_dist = lp_dist
+

@@ -40,6 +40,14 @@ with st.sidebar.form('input_parameters'):
         'End week',
         dates
     )
+    purchaser_dist_selection = st.selectbox(
+        'Purchaser Distribution',
+        ['Uniform', 'Normal', 'Skew in the money', 'Skew out the money', 'poop']
+    )
+    lp_dist_selection = st.selectbox(
+        'Liquidity Provider Distribution',
+        ['Uniform']
+    )
     submitted = st.form_submit_button('Run')
 
 if submitted:
@@ -48,11 +56,28 @@ if submitted:
 
     epoch_dates = dates[dates.index(start_week):dates.index(end_week) + 1]
 
+    # purchaser distribution setting
+    if purchaser_dist_selection == 'Normal':
+        pdist = PurchaserDist.NORMAL
+    elif purchaser_dist_selection == 'Skew in the money':
+        pdist = PurchaserDist.SKEWIN
+    elif purchaser_dist_selection == 'Skew out the money':
+        pdist = PurchaserDist.SKEWOUT
+    else:
+        pdist = PurchaserDist.UNIFORM
+
+    # lp distribution selection
+    if lp_dist_selection == 'Uniform':
+        lpdist = LPDist.UNIFORM
+    else:
+        lpdist = LPDist.UNIFORM
+
+
     sim = Simulation(
         num_liquidity_providers,
         num_purchasers,
         epoch_dates,
-        Distribution(PurchaserDist.NORMAL)
+        Distribution(pdist, lpdist)
     )
     option_pool = sim.run()
 
