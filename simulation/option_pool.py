@@ -14,6 +14,9 @@ class OptionPool:
         self.options = dict()
         self.csv_processor = CSVProcessor()
         self.epochs = []
+        self.strike_values = []
+        self.strikes = []
+        self.premiums = []
 
     def deposit(self, value: float, asset: Asset) -> None:
         if asset == Asset.USDT:
@@ -33,7 +36,6 @@ class OptionPool:
         self,
         date: str,
         purchaser_id: int,
-        option_index: int,  # TODO Remove after implementing strike price calculator
         value: float
     ) -> None:
         if self.total_underlying_asset_unlocked > 0:
@@ -56,13 +58,15 @@ class OptionPool:
             # Store the option details
             self.options[purchaser_id] = Option(
                 OptionType.CALL,
-                option_index,
                 strike,
                 premium
             )
 
             # Epoch statistics
             self.epochs[-1].total_lp_profit += premium
+            self.strike_values.append(value)
+            self.strikes.append(strike)
+            self.premiums.append(premium)
 
     def exercise_call_option(self, date: str, purchaser_id: int) -> None:
         if purchaser_id in self.options.keys():
@@ -104,6 +108,7 @@ class OptionPool:
         price and 1 is the highest possible strike price, return the
         corresponding strike price.
         '''
+
         lowest = self.calculate_lowest_strike(date)
         highest = self.calculate_highest_strike(date)
         return lowest + (highest - lowest) * value
@@ -124,6 +129,7 @@ class OptionPool:
         r = risk free interest rate
         sigma = annualized vol (vix as a percentage)
         '''
+
         S = self.csv_processor.get_eth_price(date)
         K = strike
         T = 7.0 / 365.0

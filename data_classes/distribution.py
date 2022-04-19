@@ -2,7 +2,7 @@ from enum import Enum, auto
 
 
 # purchaser distributions
-class PurchaserDist(Enum):
+class PurchaserDistribution(Enum):
     UNIFORM = auto()
     NORMAL = auto()
     SKEWIN = auto()
@@ -10,12 +10,11 @@ class PurchaserDist(Enum):
 
 
 # liquidity provider distribution
-class LPDist(Enum):
+class LPDistribution(Enum):
     UNIFORM = auto()
 
 
 class Distribution:
-    def __init__(self, purchaser_dist: PurchaserDist, lp_dist: LPDist) -> None:
-        self.purchaser_dist = purchaser_dist
-        self.lp_dist = lp_dist
-
+    def __init__(self, purchaser_distribution: PurchaserDistribution, lp_distribution: LPDistribution) -> None:
+        self.purchaser_distribution = purchaser_distribution
+        self.lp_distribution = lp_distribution

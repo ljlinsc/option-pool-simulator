@@ -11,6 +11,5 @@ class OptionType(Enum):
 @dataclass
 class Option:
     type: OptionType
-    option_index: int
     strike: float
     premium: float

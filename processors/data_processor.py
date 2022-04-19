@@ -1,26 +1,16 @@
-from data_classes.epoch import Epoch
-from typing import List
+import altair as alt
+import numpy as np
 
 from simulation.option_pool import OptionPool
 
 
 class DataProcessor:
-    def __init__(self, epoch_dates: List[str], option_pool: OptionPool) -> None:
-        self.epoch_dates = epoch_dates
-        self.option_pool = option_pool
-
-    def getEpochs(self) -> List[Epoch]:
-        epochs: List[Epoch] = [Epoch(date, 0.0, 0.0)
-                               for date in self.epoch_dates]
-
-        # Total value locked (USDT) at the end of each epoch
-        for i in range(len(epochs)):
-            epochs[i].total_value_locked = self.option_pool.end_of_epoch_tvls[i]
-
-        # Total profit (USDT) for each epoch
-        epochs[0].total_profit = epochs[0].total_value_locked
-        for i in range(1, len(epochs)):
-            epochs[i].total_profit = epochs[i].total_value_locked - \
-                epochs[i - 1].total_value_locked
-
-        return epochs
+    def get_strike_values_data(option_pool: OptionPool) -> alt.Data:
+        data = [{'value': np.around(i, 2), 'frequency': 0}
+                for i in np.arange(0.05, 1.05, 0.05)]
+        for strike_value in option_pool.strike_values:
+            for i in range(len(data)):
+                if data[i]['value'] >= strike_value:
+                    data[i]['frequency'] += 1
+                    break
+        return alt.Data(values=data)
