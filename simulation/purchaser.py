@@ -47,26 +47,24 @@ class Purchaser:
 
         # uniform distribution
         if self.distribution == PurchaserDist.UNIFORM:
-            s = np.random.uniform(low=0, high=57)
+            s = np.random.uniform(low=0, high=1)
 
         # normal distribution centered at the money
         elif self.distribution == PurchaserDist.NORMAL:
-            s = norm(loc=28.5, scale=10.0).rvs()
+            s = norm(loc=0.5, scale=0.2).rvs()
 
         # normal distribution centered in the money
         elif self.distribution == PurchaserDist.SKEWIN:
-            s = skewnorm(3, loc=10, scale=10.0).rvs()
+            s = skewnorm(3, loc=0.2, scale=0.2).rvs()
 
         # normal distribution centered out the money
         elif self.distribution == PurchaserDist.SKEWOUT:
-            s = skewnorm(-3, loc=46, scale=10.0).rvs()
+            s = skewnorm(-3, loc=0.8, scale=0.2).rvs()
 
         # fix out of range values
         if s < 0:
             s = 0
-        elif s > 57:
-            s = 57
+        elif s > 1:
+            s = 1
 
-        s = round(s, 0)
-
-        return 0.5  # FIXME
+        return s
