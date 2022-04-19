@@ -1,3 +1,6 @@
+from scipy.stats import skewnorm, norm
+
+
 import numpy as np
 from data_classes.distribution import Distribution, PurchaserDist
 
@@ -48,16 +51,18 @@ class Purchaser:
 
         # normal distribution centered at the money
         elif self.distribution == PurchaserDist.NORMAL:
-            s = np.random.normal(loc=28.5, scale=10.0)
+            s = norm(loc=28.5, scale=10.0).rvs()
 
         # normal distribution centered in the money
         elif self.distribution == PurchaserDist.SKEWIN:
-            s = np.random.normal(loc=14, scale=10.0)
+            s = skewnorm(3, loc=10, scale=10.0).rvs()
+
 
         # normal distribution centered out the money
         elif self.distribution == PurchaserDist.SKEWOUT:
-            s = np.random.normal(loc=43, scale=10.0)
+            s = skewnorm(-3, loc=47, scale=10.0).rvs()
 
+        # fix out of range values
         if s < 0:
             s = 0
         elif s > 57:
