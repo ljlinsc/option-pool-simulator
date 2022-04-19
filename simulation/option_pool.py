@@ -69,7 +69,9 @@ class OptionPool:
             strike = self.options.pop(purchaser_id).strike
             if strike <= self.csv_processor.get_end_eth_price_wk(date):
                 # Option is exercised
+                self.total_usdt += strike
                 self.total_underlying_asset_locked -= 1
+                self.epochs[-1].total_lp_profit += strike
                 self.epochs[-1].total_lp_profit -= self.epochs[-1].end_eth_price
 
     def unlock_underlying_assets(self) -> None:
