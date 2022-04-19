@@ -57,7 +57,6 @@ class Purchaser:
         elif self.distribution == PurchaserDist.SKEWIN:
             s = skewnorm(3, loc=10, scale=10.0).rvs()
 
-
         # normal distribution centered out the money
         elif self.distribution == PurchaserDist.SKEWOUT:
             s = skewnorm(-3, loc=46, scale=10.0).rvs()
@@ -70,4 +69,4 @@ class Purchaser:
 
         s = round(s, 0)
 
-        return s
+        return 0.5  # FIXME

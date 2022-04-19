@@ -1,3 +1,5 @@
+import numpy as np
+from scipy.stats import norm
 from data_classes.epoch import Epoch
 from data_classes.option import Option, OptionType
 from data_classes.transaction import Asset
@@ -38,12 +40,10 @@ class OptionPool:
             strike = self.calculate_strike_price(
                 value,
                 date,
-                option_index  # TODO Remove after implementing strike price calculator
             )
             premium = self.calculate_premium(
                 date,
                 strike,
-                option_index  # TODO Remove after implementing strike price calculator
             )
 
             # Lock the underlying asset
@@ -67,12 +67,13 @@ class OptionPool:
     def exercise_call_option(self, date: str, purchaser_id: int) -> None:
         if purchaser_id in self.options.keys():
             strike = self.options.pop(purchaser_id).strike
-            if strike <= self.csv_processor.get_end_eth_price_wk(date):
+            end_eth_price = self.csv_processor.get_end_eth_price_wk(date)
+            if strike <= end_eth_price:
                 # Option is exercised
                 self.total_usdt += strike
                 self.total_underlying_asset_locked -= 1
                 self.epochs[-1].total_lp_profit += strike
-                self.epochs[-1].total_lp_profit -= self.epochs[-1].end_eth_price
+                self.epochs[-1].total_lp_profit -= end_eth_price
 
     def unlock_underlying_assets(self) -> None:
         self.total_underlying_asset_unlocked += self.total_underlying_asset_locked
@@ -84,41 +85,56 @@ class OptionPool:
         self.total_usdt = 0
 
     def calculate_lowest_strike(self, date: str) -> float:
-        lowstrike = self.csv_processor.get_spot(date)
+        lowstrike = self.csv_processor.get_eth_price(date)
         lowstrike -= .5*lowstrike
-        return lowstrike  # TODO
+        return lowstrike
 
     def calculate_highest_strike(self, date: str) -> float:
-        highstrike = self.csv_processor.get_spot(date)
+        highstrike = self.csv_processor.get_eth_price(date)
         highstrike += .5*highstrike
-        return highstrike  # TODO
+        return highstrike
 
     def calculate_strike_price(
         self,
         value: float,
         date: str,
-        option_index: int  # TODO Remove after implementing strike price calculator
     ) -> float:
         '''
-        TODO
         Given a value in the range [0, 1] where 0 is the lowest possible strike
         price and 1 is the highest possible strike price, return the
         corresponding strike price.
         '''
-        return 0.0
+        lowest = self.calculate_lowest_strike(date)
+        highest = self.calculate_highest_strike(date)
+        return lowest + (highest - lowest) * value
 
     def calculate_premium(
         self,
         date: str,
         strike: float,
-        option_index: int  # TODO Remove after implementing strike price calculator
     ) -> float:
         '''
-        TODO
         Given a date and a strike price, calculate the price of the option
-        premium in USDT based on values from the CSVs.
+        premium in USDT based on values from the CSVs. Black-Scholes options
+        premium prediction.
+
+        S = spot price of asset
+        K = strike price of option
+        T = time in years
+        r = risk free interest rate
+        sigma = annualized vol (vix as a percentage)
         '''
-        return 0.0
+        S = self.csv_processor.get_eth_price(date)
+        K = strike
+        T = 7.0 / 365.0
+        r = self.csv_processor.get_r(date)
+        sigma = self.csv_processor.get_vol(date)
+        N = norm.cdf
+
+        d1 = (np.log(S/K) + (r + sigma**2/2)*T) / (sigma*np.sqrt(T))
+        d2 = d1 - sigma * np.sqrt(T)
+        premium = S * N(d1) - K * np.exp(-r*T) * N(d2)
+        return premium
 
     def initialize_epoch_statistics(self, date: str) -> None:
         self.epochs.append(Epoch(

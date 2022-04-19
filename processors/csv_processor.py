@@ -17,7 +17,6 @@ class CSVProcessor:
 
     def get_r(self, date: str) -> float:
         date = pd.to_datetime(date)
-
         return self.data.loc[date][0]
 
     def get_end_eth_price_wk(self, date: str) -> float:
