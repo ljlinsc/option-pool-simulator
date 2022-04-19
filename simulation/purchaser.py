@@ -60,7 +60,7 @@ class Purchaser:
 
         # normal distribution centered out the money
         elif self.distribution == PurchaserDist.SKEWOUT:
-            s = skewnorm(-3, loc=47, scale=10.0).rvs()
+            s = skewnorm(-3, loc=46, scale=10.0).rvs()
 
         # fix out of range values
         if s < 0:
