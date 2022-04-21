@@ -7,6 +7,7 @@ from processors.txt_processor import TXTProcessor
 from simulation.simulation import Simulation
 from processors.data_processor import DataProcessor
 
+csv_processor = CSVProcessor()
 txt_processor = TXTProcessor()
 dates = txt_processor.getDates()
 
@@ -81,6 +82,7 @@ if submitted:
     # SIMULATION
 
     sim = Simulation(
+        csv_processor,
         num_liquidity_providers,
         num_purchasers,
         epoch_dates,
@@ -88,7 +90,6 @@ if submitted:
     )
     option_pool = sim.run()
 
-    csv_processor = CSVProcessor()
     data_by_epoch = alt.Data(
         values=[epoch.__dict__ for epoch in option_pool.epochs])
     strike_value_data = DataProcessor.get_strike_values_data(option_pool)
@@ -131,7 +132,7 @@ if submitted:
         ), use_container_width=True)
 
     with purchaser_strike_value_container.container():
-        st.subheader('Purchaser strike values')
+        st.subheader('Purchaser strike price selection distribution')
 
         st.altair_chart(alt.Chart(strike_value_data).mark_bar().encode(
             x=alt.X('value:O', axis=alt.Axis(title='Value')),

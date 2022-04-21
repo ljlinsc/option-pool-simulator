@@ -7,12 +7,14 @@ from processors.csv_processor import CSVProcessor
 
 
 class OptionPool:
-    def __init__(self) -> None:
+    def __init__(self, csv_processor: CSVProcessor) -> None:
+        self.csv_processor = csv_processor
         self.total_underlying_asset_unlocked = 0.0
         self.total_underlying_asset_locked = 0.0
         self.total_usdt = 0.0
         self.options = dict()
-        self.csv_processor = CSVProcessor()
+
+        # Statistics
         self.epochs = []
         self.strike_values = []
         self.strikes = []
@@ -24,20 +26,23 @@ class OptionPool:
         else:
             self.total_underlying_asset_unlocked += value
 
-    def withdraw(self, value: float, asset: Asset) -> None:
+    def withdraw(self, value: float, asset: Asset) -> bool:
         if asset == Asset.USDT:
             if self.total_usdt >= value:
                 self.total_usdt -= value
+                return True
         else:
             if self.total_underlying_asset_unlocked >= value:
                 self.total_underlying_asset_unlocked -= value
+                return True
+        return False
 
     def purchase_call_option(
         self,
         date: str,
         purchaser_id: int,
         value: float
-    ) -> None:
+    ) -> float:
         if self.total_underlying_asset_unlocked > 0:
             strike = self.calculate_strike_price(
                 value,
@@ -68,10 +73,13 @@ class OptionPool:
             self.strikes.append(strike)
             self.premiums.append(premium)
 
-    def exercise_call_option(self, date: str, purchaser_id: int) -> None:
+            return premium
+        return -1
+
+    def exercise_call_option(self, date: str, purchaser_id: int) -> float:
         if purchaser_id in self.options.keys():
             strike = self.options.pop(purchaser_id).strike
-            end_eth_price = self.csv_processor.get_end_eth_price_wk(date)
+            end_eth_price = self.csv_processor.get_eth_price(date)
             if strike <= end_eth_price:
                 # Option is exercised
                 self.total_usdt += strike
@@ -79,13 +87,16 @@ class OptionPool:
                 self.epochs[-1].total_lp_profit += strike
                 self.epochs[-1].total_lp_profit -= end_eth_price
 
+                return strike
+        return -1
+
     def unlock_underlying_assets(self) -> None:
         self.total_underlying_asset_unlocked += self.total_underlying_asset_locked
         self.total_underlying_asset_locked = 0.0
 
     def convert_usdt_to_underlying_asset(self, date: str) -> None:
         self.total_underlying_asset_unlocked += self.total_usdt / \
-            self.csv_processor.get_end_eth_price_wk(date)
+            self.csv_processor.get_eth_price(date)
         self.total_usdt = 0
 
     def calculate_lowest_strike(self, date: str) -> float:
@@ -145,7 +156,7 @@ class OptionPool:
     def initialize_epoch_statistics(self, date: str) -> None:
         self.epochs.append(Epoch(
             date,
-            self.csv_processor.get_end_eth_price_wk(date),
+            self.csv_processor.get_eth_price(date),
             0.0,
             0.0,
             0.0
