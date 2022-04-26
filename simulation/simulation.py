@@ -15,11 +15,13 @@ class Simulation:
         num_liquidity_providers: int,
         num_purchasers: int,
         epoch_dates: List[str],
-        distributions: Distribution
+        purchaser_distribution: Distribution,
+        lp_distribution: Distribution
     ) -> None:
         self.csv_processor = csv_processor
         self.epoch_dates = epoch_dates
-        self.distributions = distributions
+        self.purchaser_distribution = purchaser_distribution
+        self.lp_distribution = lp_distribution
         self.option_pool = OptionPool(csv_processor)
         self.actors = []
 
@@ -28,7 +30,7 @@ class Simulation:
             self.actors.append(LiquidityProvider(
                 self.csv_processor,
                 self.option_pool,
-                self.distributions.lp_distribution
+                self.lp_distribution
             ))
 
         # Create purchasers
@@ -37,7 +39,7 @@ class Simulation:
                 i,
                 self.csv_processor,
                 self.option_pool,
-                self.distributions.purchaser_distribution
+                self.purchaser_distribution
             ))
 
     def run(self) -> OptionPool:

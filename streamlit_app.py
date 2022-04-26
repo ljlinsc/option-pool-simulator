@@ -86,7 +86,8 @@ if submitted:
         num_liquidity_providers,
         num_purchasers,
         epoch_dates,
-        Distribution(purchaser_distribution, lp_distribution)
+        Distribution(purchaser_distribution),
+        Distribution(lp_distribution)
     )
     option_pool = sim.run()
 

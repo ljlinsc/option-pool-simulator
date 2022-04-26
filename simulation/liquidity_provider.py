@@ -1,12 +1,12 @@
 import numpy as np
-from data_classes.distribution import LPDistribution
+from data_classes.distribution import Distribution
 from processors.csv_processor import CSVProcessor
 from simulation.option_pool import OptionPool
 from data_classes.transaction import Asset
 
 
 class LiquidityProvider:
-    def __init__(self, csv_processor: CSVProcessor, option_pool: OptionPool, distribution: LPDistribution) -> None:
+    def __init__(self, csv_processor: CSVProcessor, option_pool: OptionPool, distribution: Distribution) -> None:
         self.csv_processor = csv_processor
         self.option_pool = option_pool
         self.distribution = distribution
@@ -41,13 +41,7 @@ class LiquidityProvider:
                 self.num_eth_withdrawn += 1
 
     def generate_random_deposit_value(self) -> float:
-        if self.distribution == LPDistribution.UNIFORM:
-            return np.random.uniform(low=1, high=3)
-        else:
-            return 0.0
+        return self.distribution.generate_ranged_value(1, 3)
 
     def generate_random_withdraw_value(self) -> float:
-        if self.distribution == LPDistribution.UNIFORM:
-            return np.random.uniform(low=0, high=2)
-        else:
-            return 0.0
+        return self.distribution.generate_ranged_value(0, 2)

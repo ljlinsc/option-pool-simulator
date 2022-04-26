@@ -1,8 +1,4 @@
-from scipy.stats import skewnorm, norm
-
-
-import numpy as np
-from data_classes.distribution import PurchaserDistribution
+from data_classes.distribution import Distribution
 from processors.csv_processor import CSVProcessor
 
 from simulation.option_pool import OptionPool
@@ -14,7 +10,7 @@ class Purchaser:
         id: int,
         csv_processor: CSVProcessor,
         option_pool: OptionPool,
-        distribution: PurchaserDistribution
+        distribution: Distribution
     ) -> None:
         self.id = id
         self.csv_processor = csv_processor
@@ -48,27 +44,4 @@ class Purchaser:
         0 represents the most in-the-money strike price and 1 represents the
         most out-of-the-money strike price.
         '''
-
-        # uniform distribution
-        if self.distribution == PurchaserDistribution.UNIFORM:
-            s = np.random.uniform(low=0, high=1)
-
-        # normal distribution centered at the money
-        elif self.distribution == PurchaserDistribution.NORMAL:
-            s = norm(loc=0.5, scale=0.2).rvs()
-
-        # normal distribution centered in the money
-        elif self.distribution == PurchaserDistribution.SKEWIN:
-            s = skewnorm(3, loc=0.2, scale=0.2).rvs()
-
-        # normal distribution centered out the money
-        elif self.distribution == PurchaserDistribution.SKEWOUT:
-            s = skewnorm(-3, loc=0.8, scale=0.2).rvs()
-
-        # fix out of range values
-        if s < 0:
-            s = 0
-        elif s > 1:
-            s = 1
-
-        return s
+        return self.distribution.generate_value()
