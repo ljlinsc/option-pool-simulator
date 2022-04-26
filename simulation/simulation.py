@@ -22,7 +22,7 @@ class Simulation:
         self.epoch_dates = epoch_dates
         self.purchaser_distribution = purchaser_distribution
         self.lp_distribution = lp_distribution
-        self.option_pool = OptionPool(csv_processor)
+        self.option_pool = OptionPool(csv_processor, purchaser_distribution)
         self.actors = []
 
         # Create liquidity providers

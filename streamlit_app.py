@@ -41,7 +41,7 @@ with st.sidebar.form('input_parameters'):
         'End week',
         dates
     )
-    purchaser_distribution_selection = st.selectbox(
+    purchaser_distribution_selections = st.multiselect(
         'Purchaser Distribution',
         ['Uniform', 'Normal', 'Skew in the money', 'Skew out the money']
     )
@@ -57,23 +57,24 @@ st.header('Simulation Results')
 
 tvl_container = st.empty()
 option_pool_profit_container = st.empty()
-purchaser_strike_value_container = st.empty()
 lp_profit_container = st.empty()
 eth_price_container = st.empty()
+purchaser_strike_value_container = st.empty()
 
 if submitted:
 
     epoch_dates = dates[dates.index(start_week):dates.index(end_week) + 1]
 
     # purchaser distribution setting
-    if purchaser_distribution_selection == 'Uniform':
-        purchaser_distribution = PurchaserDistribution.UNIFORM
-    elif purchaser_distribution_selection == 'Normal':
-        purchaser_distribution = PurchaserDistribution.NORMAL
-    elif purchaser_distribution_selection == 'Skew in the money':
-        purchaser_distribution = PurchaserDistribution.SKEWIN
-    elif purchaser_distribution_selection == 'Skew out the money':
-        purchaser_distribution = PurchaserDistribution.SKEWOUT
+    purchaser_distributions = []
+    if 'Uniform' in purchaser_distribution_selections:
+        purchaser_distributions.append(PurchaserDistribution.UNIFORM)
+    if 'Normal' in purchaser_distribution_selections:
+        purchaser_distributions.append(PurchaserDistribution.NORMAL)
+    if 'Skew in the money' in purchaser_distribution_selections:
+        purchaser_distributions.append(PurchaserDistribution.SKEWIN)
+    if 'Skew out the money' in purchaser_distribution_selections:
+        purchaser_distributions.append(PurchaserDistribution.SKEWOUT)
 
     # lp distribution selection
     if lp_distribution_selection == 'Uniform':
@@ -81,19 +82,17 @@ if submitted:
 
     # SIMULATION
 
-    sim = Simulation(
+    simulations = [Simulation(
         csv_processor,
         num_liquidity_providers,
         num_purchasers,
         epoch_dates,
         Distribution(purchaser_distribution),
         Distribution(lp_distribution)
-    )
-    option_pool = sim.run()
-
-    data_by_epoch = alt.Data(
-        values=[epoch.__dict__ for epoch in option_pool.epochs])
-    strike_value_data = DataProcessor.get_strike_values_data(option_pool)
+    ) for purchaser_distribution in purchaser_distributions]
+    option_pools = [simulation.run() for simulation in simulations]
+    epoch_data = DataProcessor.get_data_by_epoch(option_pools)
+    strike_values_data = DataProcessor.get_strike_values_data(option_pools)
 
     # OUTPUT
 
@@ -107,61 +106,81 @@ if submitted:
     with tvl_container.container():
         st.subheader('Total value locked in the option pool')
 
-        st.altair_chart(alt.Chart(data_by_epoch).mark_bar().encode(
-            x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
-            y=alt.Y('total_value_locked:Q', axis=alt.Axis(format='$.2f',
-                    title='Total value locked (USDT)')),
-            color=alt.condition(
-                alt.datum.total_value_locked > 0,
-                alt.value("green"),
-                alt.value("red")
+        st.altair_chart(alt.Chart(epoch_data).mark_bar(opacity=0.7).encode(
+            x=alt.X(
+                'start_date:O',
+                axis=alt.Axis(title='Epoch')
+            ),
+            y=alt.Y(
+                'total_value_locked:Q',
+                axis=alt.Axis(
+                    format='$.2f', title='Total value locked (USDT)'),
+                stack=None
+            ),
+            color=alt.Color(
+                'purchaser_distribution:O',
+                scale=alt.Scale(scheme='set1'),
+                title='Purchaser distribution'
             )
         ), use_container_width=True)
 
     with option_pool_profit_container.container():
         st.subheader('Total option pool profit by epoch')
 
-        st.altair_chart(alt.Chart(data_by_epoch).mark_bar().encode(
-            x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
-            y=alt.Y('total_profit:Q', axis=alt.Axis(format='$.2f',
-                    title='Total profit (USDT)')),
-            color=alt.condition(
-                alt.datum.total_profit > 0,
-                alt.value("green"),
-                alt.value("red")
+        st.altair_chart(alt.Chart(epoch_data).mark_bar(opacity=0.7).encode(
+            x=alt.X(
+                'start_date:O',
+                axis=alt.Axis(title='Epoch')
+            ),
+            y=alt.Y(
+                'total_profit:Q',
+                axis=alt.Axis(format='$.2f', title='Total profit (USDT)'),
+                stack=None
+            ),
+            color=alt.Color(
+                'purchaser_distribution:O',
+                scale=alt.Scale(scheme='set1'),
+                title='Purchaser distribution'
             )
-        ), use_container_width=True)
-
-    with purchaser_strike_value_container.container():
-        st.subheader('Purchaser strike price selection distribution')
-
-        st.altair_chart(alt.Chart(strike_value_data).mark_bar().encode(
-            x=alt.X('value:O', axis=alt.Axis(title='Value')),
-            y=alt.Y('frequency:Q', axis=alt.Axis(title='Frequency')),
-            color=alt.value("blue")
         ), use_container_width=True)
 
     with lp_profit_container.container():
         st.subheader('Total liquidity provider profit by epoch')
 
-        st.altair_chart(alt.Chart(data_by_epoch).mark_bar().encode(
-            x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
-            y=alt.Y('total_lp_profit:Q', axis=alt.Axis(format='$.2f',
-                    title='Total liquidity provider profit (USDT)')),
-            color=alt.condition(
-                alt.datum.total_lp_profit > 0,
-                alt.value("green"),
-                alt.value("red")
+        st.altair_chart(alt.Chart(epoch_data).mark_bar(opacity=0.7).encode(
+            x=alt.X(
+                'start_date:O',
+                axis=alt.Axis(title='Epoch')
+            ),
+            y=alt.Y(
+                'total_lp_profit:Q',
+                axis=alt.Axis(
+                    format='$.2f', title='Total liquidity provider profit (USDT)'),
+                stack=None
+            ),
+            color=alt.Color(
+                'purchaser_distribution:O',
+                scale=alt.Scale(scheme='set1'),
+                title='Purchaser distribution'
             )
         ), use_container_width=True)
 
     with eth_price_container.container():
         st.subheader('Price of ETH')
 
-        st.altair_chart(alt.Chart(data_by_epoch).mark_line(
+        st.altair_chart(alt.Chart(epoch_data).mark_line(
             color="gray"
         ).encode(
             x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
             y=alt.Y('end_eth_price:Q', axis=alt.Axis(format='$.2f',
                     title='USDT'))
+        ), use_container_width=True)
+
+    with purchaser_strike_value_container.container():
+        st.subheader('Purchaser strike price selection distribution')
+
+        st.altair_chart(alt.Chart(strike_values_data).mark_bar().encode(
+            x=alt.X('value:O', axis=alt.Axis(title='Value')),
+            y=alt.Y('frequency:Q', axis=alt.Axis(title='Frequency')),
+            color=alt.value("black")
         ), use_container_width=True)

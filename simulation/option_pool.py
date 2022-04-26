@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import norm
+from data_classes.distribution import Distribution
 from data_classes.epoch import Epoch
 from data_classes.option import Option, OptionType
 from data_classes.transaction import Asset
@@ -7,8 +8,9 @@ from processors.csv_processor import CSVProcessor
 
 
 class OptionPool:
-    def __init__(self, csv_processor: CSVProcessor) -> None:
+    def __init__(self, csv_processor: CSVProcessor, purchaser_distribution: Distribution) -> None:
         self.csv_processor = csv_processor
+        self.purchaser_distribution = purchaser_distribution
         self.total_underlying_asset_unlocked = 0.0
         self.total_underlying_asset_locked = 0.0
         self.total_usdt = 0.0
