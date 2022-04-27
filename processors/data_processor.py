@@ -1,8 +1,15 @@
+from dataclasses import dataclass
 from typing import List
 import altair as alt
 import numpy as np
 
 from simulation.option_pool import OptionPool
+
+
+@dataclass
+class DataValue:
+    distribution: str
+    value: float
 
 
 class DataProcessor:
@@ -22,3 +29,15 @@ class DataProcessor:
                         data[i]['frequency'] += 1
                         break
         return alt.Data(values=data)
+
+    def get_total_lp_profit(option_pools: List[OptionPool]) -> List[DataValue]:
+        data = []
+        for option_pool in option_pools:
+            option_pool_data = DataValue(
+                option_pool.purchaser_distribution.name,
+                0.0
+            )
+            for epoch in option_pool.epochs:
+                option_pool_data.value += epoch.total_lp_profit
+            data.append(option_pool_data)
+        return data

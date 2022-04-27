@@ -1,4 +1,5 @@
 import altair as alt
+import pandas as pd
 import streamlit as st
 from data_classes.distribution import Distribution, LPDistribution, PurchaserDistribution
 
@@ -10,6 +11,16 @@ from processors.data_processor import DataProcessor
 csv_processor = CSVProcessor()
 txt_processor = TXTProcessor()
 dates = txt_processor.getDates()
+
+
+def get_dollar_str(value: float) -> str:
+    if value < 0:
+        dollar_str = "-"
+    else:
+        dollar_str = ""
+    dollar_str += "$%.2f" % (value.__abs__())
+    return dollar_str
+
 
 # PAGE CONFIGURATION
 
@@ -43,7 +54,7 @@ with st.sidebar.form('input_parameters'):
     )
     purchaser_distribution_selections = st.multiselect(
         'Purchaser Distribution',
-        ['Uniform', 'Normal', 'Skew in the money', 'Skew out the money']
+        ['Uniform', 'Normal', 'Skewed in the money', 'Skewed out of the money']
     )
     lp_distribution_selection = st.selectbox(
         'Liquidity Provider Distribution',
@@ -52,8 +63,6 @@ with st.sidebar.form('input_parameters'):
     submitted = st.form_submit_button('Run')
 
 # RESULTS
-
-st.header('Simulation Results')
 
 tvl_container = st.empty()
 option_pool_profit_container = st.empty()
@@ -71,9 +80,9 @@ if submitted:
         purchaser_distributions.append(PurchaserDistribution.UNIFORM)
     if 'Normal' in purchaser_distribution_selections:
         purchaser_distributions.append(PurchaserDistribution.NORMAL)
-    if 'Skew in the money' in purchaser_distribution_selections:
+    if 'Skewed in the money' in purchaser_distribution_selections:
         purchaser_distributions.append(PurchaserDistribution.SKEWIN)
-    if 'Skew out the money' in purchaser_distribution_selections:
+    if 'Skewed out of the money' in purchaser_distribution_selections:
         purchaser_distributions.append(PurchaserDistribution.SKEWOUT)
 
     # lp distribution selection
@@ -93,6 +102,7 @@ if submitted:
     option_pools = [simulation.run() for simulation in simulations]
     epoch_data = DataProcessor.get_data_by_epoch(option_pools)
     strike_values_data = DataProcessor.get_strike_values_data(option_pools)
+    total_lp_profit_data = DataProcessor.get_total_lp_profit(option_pools)
 
     # OUTPUT
 
@@ -105,6 +115,19 @@ if submitted:
 
     with tvl_container.container():
         st.subheader('Total value locked in the option pool')
+
+        st.markdown("Every epoch, LPs deposit 1-3 ETH and attempt to withdraw up to 2 ETH. Purchasers will attempt to purchase an option every epoch, and their options are automatically exercised depending on the end price of ETH at the end of the epoch.")
+
+        st.table(pd.DataFrame(
+            [[
+                option_pool.purchaser_distribution.name,
+                get_dollar_str(option_pool.epochs[-1].total_value_locked)
+            ] for option_pool in option_pools],
+            columns=(
+                "Purchaser distribution",
+                "Final TVL of the option pool"
+            ),
+        ))
 
         st.altair_chart(alt.Chart(epoch_data).mark_bar(opacity=0.7).encode(
             x=alt.X(
@@ -145,7 +168,41 @@ if submitted:
         ), use_container_width=True)
 
     with lp_profit_container.container():
-        st.subheader('Total liquidity provider profit by epoch')
+        st.subheader('Liquidity provider profit by epoch')
+
+        st.markdown("At the beginning of each epoch, LP profit is incremented by the summation of all premiums paid by purchasers. At the end of the epoch, purchasers will exercise their options if the price of ETH is greater than the strike price. When an option is exercised, the LP profit is incremented by the corresponding strike price and decremented by the price of ETH.")
+
+        st.latex(r'''
+            \text{LP profit over an epoch} = \sum_{\text{purchased options}} \text{premium} + \sum_{\text{exercised options}} \left(\text{strike} - \text{price of ETH in USD}\right)
+        ''')
+
+        st.table(pd.DataFrame(
+            [[
+                data.distribution,
+                get_dollar_str(data.value)
+            ] for data in total_lp_profit_data],
+            columns=("Purchaser distribution", "Total LP profit"),
+        ))
+
+        if len(total_lp_profit_data) > 1:
+            most_profitable = total_lp_profit_data[0]
+            for i in range(1, len(total_lp_profit_data)):
+                if total_lp_profit_data[i].value > most_profitable.value:
+                    most_profitable = total_lp_profit_data[i]
+            st.markdown(
+                "LPs will profit most when purchaser strikes are **" +
+                most_profitable.distribution.lower() + "**."
+            )
+
+        if len(total_lp_profit_data) > 1:
+            least_profitable = total_lp_profit_data[0]
+            for i in range(1, len(total_lp_profit_data)):
+                if total_lp_profit_data[i].value < least_profitable.value:
+                    least_profitable = total_lp_profit_data[i]
+            st.markdown(
+                "LPs will profit least when purchaser strikes are **" +
+                least_profitable.distribution.lower() + "**."
+            )
 
         st.altair_chart(alt.Chart(epoch_data).mark_bar(opacity=0.7).encode(
             x=alt.X(

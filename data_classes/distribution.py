@@ -25,9 +25,9 @@ class Distribution:
         elif distribution == PurchaserDistribution.NORMAL:
             self.name = "Normal"
         elif distribution == PurchaserDistribution.SKEWIN:
-            self.name = "Skew in the money"
+            self.name = "Skewed in the money"
         elif distribution == PurchaserDistribution.SKEWOUT:
-            self.name = "Skew out the money"
+            self.name = "Skewed out of the money"
         elif distribution == LPDistribution.UNIFORM:
             self.name = "Uniform"
         else:
