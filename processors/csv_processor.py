@@ -5,7 +5,7 @@ import pandas as pd
 class CSVProcessor:
     def __init__(self) -> None:
         self.data = pd.read_csv(
-            "data/optdata.csv", index_col='Date', parse_dates=['Date'])
+            "data/ethdata.csv", index_col='Date', parse_dates=['Date'])
 
     def get_eth_price(self, date: str) -> float:
         date = pd.to_datetime(date)
