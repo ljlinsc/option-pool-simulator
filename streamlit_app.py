@@ -54,11 +54,16 @@ with st.sidebar.form('input_parameters'):
     )
     purchaser_distribution_selections = st.multiselect(
         'Purchaser Distribution',
-        ['Uniform', 'Normal', 'Skewed in the money', 'Skewed out of the money']
+        ['Uniform',
+        'Normal',
+        'Skewed in the money',
+        'Skewed out of the money',
+        'Skewed extremely in the money',
+        'Skewed extremely out of the money']
     )
     lp_distribution_selection = st.selectbox(
         'Liquidity Provider Distribution',
-        ['Uniform']
+        ['Uniform', 'Normal']
     )
     submitted = st.form_submit_button('Run')
 
@@ -84,10 +89,16 @@ if submitted:
         purchaser_distributions.append(PurchaserDistribution.SKEWIN)
     if 'Skewed out of the money' in purchaser_distribution_selections:
         purchaser_distributions.append(PurchaserDistribution.SKEWOUT)
+    if 'Skewed extremely in the money' in purchaser_distribution_selections:
+        purchaser_distributions.append(PurchaserDistribution.EXTREMESKEWIN)
+    if 'Skewed extremely out of the money' in purchaser_distribution_selections:
+        purchaser_distributions.append(PurchaserDistribution.EXTREMESKEWOUT)
 
     # lp distribution selection
     if lp_distribution_selection == 'Uniform':
         lp_distribution = LPDistribution.UNIFORM
+    elif lp_distribution_selection == 'Normal':
+        lp_distribution = LPDistribution.NORMAL
 
     # SIMULATION
 
