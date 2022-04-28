@@ -154,8 +154,9 @@ if submitted:
             color=alt.Color(
                 'purchaser_distribution:O',
                 scale=alt.Scale(scheme='set1'),
-                title='Purchaser distribution'
-            )
+                title='Purchaser distribution',
+                legend=alt.Legend(orient='top')
+            ),
         ), use_container_width=True)
 
     with option_pool_profit_container.container():
@@ -174,7 +175,8 @@ if submitted:
             color=alt.Color(
                 'purchaser_distribution:O',
                 scale=alt.Scale(scheme='set1'),
-                title='Purchaser distribution'
+                title='Purchaser distribution',
+                legend=alt.Legend(orient='top')
             )
         ), use_container_width=True)
 
@@ -229,7 +231,8 @@ if submitted:
             color=alt.Color(
                 'purchaser_distribution:O',
                 scale=alt.Scale(scheme='set1'),
-                title='Purchaser distribution'
+                title='Purchaser distribution',
+                legend=alt.Legend(orient='top')
             )
         ), use_container_width=True)
 
