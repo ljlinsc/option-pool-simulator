@@ -8,7 +8,7 @@ from data_classes.underlying_asset import UnderlyingAsset
 from simulation.simulation import Simulation
 from utils.csv_processor import CSVProcessor
 from utils.data_processor import DataProcessor
-from utils.formatter import get_dollar_str
+from utils.formatter import create_layered_bar_chart, get_dollar_str
 
 
 # PAGE CONFIGURATION
@@ -84,6 +84,8 @@ purchaser_strike_value_container = st.empty()
 
 if submitted:
 
+    # SIMULATION
+
     epoch_dates = [
         datetime.combine(start_date + timedelta(7 * i), datetime.min.time())
         for i in range(num_epochs + 1)
@@ -113,8 +115,6 @@ if submitted:
     elif lp_distribution_selection == 'Normal':
         lp_distribution = LPDistribution.NORMAL
 
-    # SIMULATION
-
     simulations = [Simulation(
         csv_processor,
         num_liquidity_providers,
@@ -125,6 +125,7 @@ if submitted:
         asset
     ) for purchaser_distribution in purchaser_distributions]
     option_pools = [simulation.run() for simulation in simulations]
+
     epoch_data = DataProcessor.get_data_by_epoch(option_pools)
     strike_values_data = DataProcessor.get_strike_values_data(option_pools)
     total_lp_profit_data = DataProcessor.get_total_lp_profit(option_pools)
@@ -155,44 +156,27 @@ if submitted:
             ),
         ))
 
-        st.altair_chart(alt.Chart(epoch_data).mark_bar(opacity=0.7).encode(
-            x=alt.X(
-                'start_date:O',
-                axis=alt.Axis(title='Epoch')
-            ),
-            y=alt.Y(
-                'total_value_locked:Q',
-                axis=alt.Axis(
-                    format='$.2f', title='Total value locked (USDT)'),
-                stack=None
-            ),
-            color=alt.Color(
-                'purchaser_distribution:O',
-                scale=alt.Scale(scheme='set1'),
-                title='Purchaser distribution',
-                legend=alt.Legend(orient='top')
-            ),
+        st.altair_chart(create_layered_bar_chart(
+            epoch_data,
+            'start_date:O',
+            'Epoch',
+            'total_value_locked:Q',
+            'Total value locked (USDT)',
+            'purchaser_distribution:O',
+            'Purchaser distribution'
         ), use_container_width=True)
 
     with option_pool_profit_container.container():
         st.subheader('Total option pool profit by epoch')
 
-        st.altair_chart(alt.Chart(epoch_data).mark_bar(opacity=0.7).encode(
-            x=alt.X(
-                'start_date:O',
-                axis=alt.Axis(title='Epoch')
-            ),
-            y=alt.Y(
-                'total_profit:Q',
-                axis=alt.Axis(format='$.2f', title='Total profit (USDT)'),
-                stack=None
-            ),
-            color=alt.Color(
-                'purchaser_distribution:O',
-                scale=alt.Scale(scheme='set1'),
-                title='Purchaser distribution',
-                legend=alt.Legend(orient='top')
-            )
+        st.altair_chart(create_layered_bar_chart(
+            epoch_data,
+            'start_date:O',
+            'Epoch',
+            'total_profit:Q',
+            'Total profit (USDT)',
+            'purchaser_distribution:O',
+            'Purchaser distribution'
         ), use_container_width=True)
 
     with lp_profit_container.container():
@@ -233,23 +217,14 @@ if submitted:
                 least_profitable.distribution.lower() + "**."
             )
 
-        st.altair_chart(alt.Chart(epoch_data).mark_bar(opacity=0.7).encode(
-            x=alt.X(
-                'start_date:O',
-                axis=alt.Axis(title='Epoch')
-            ),
-            y=alt.Y(
-                'total_lp_profit:Q',
-                axis=alt.Axis(
-                    format='$.2f', title='Total liquidity provider profit (USDT)'),
-                stack=None
-            ),
-            color=alt.Color(
-                'purchaser_distribution:O',
-                scale=alt.Scale(scheme='set1'),
-                title='Purchaser distribution',
-                legend=alt.Legend(orient='top')
-            )
+        st.altair_chart(create_layered_bar_chart(
+            epoch_data,
+            'start_date:O',
+            'Epoch',
+            'total_lp_profit:Q',
+            'Total liquidity provider profit (USDT)',
+            'purchaser_distribution:O',
+            'Purchaser distribution'
         ), use_container_width=True)
 
     with underlying_price_container.container():
