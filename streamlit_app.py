@@ -1,16 +1,13 @@
+from datetime import timedelta
 import altair as alt
 import pandas as pd
 import streamlit as st
 from data_classes.distribution import Distribution, LPDistribution, PurchaserDistribution
+from data_classes.underlying_asset import UnderlyingAsset
 
 from processors.csv_processor import CSVProcessor
-from processors.txt_processor import TXTProcessor
 from simulation.simulation import Simulation
 from processors.data_processor import DataProcessor
-
-csv_processor = CSVProcessor()
-txt_processor = TXTProcessor()
-dates = txt_processor.getDates()
 
 
 def get_dollar_str(value: float) -> str:
@@ -33,7 +30,11 @@ st.title('Option Pool Simulator')
 
 # PARAMETERS
 
-with st.sidebar.form('input_parameters'):
+with st.sidebar:
+    underlying_asset = st.selectbox(
+        'Underlying asset',
+        ['ETH', 'TSLA']
+    )
     num_purchasers = st.number_input(
         'Number of option purchasers',
         min_value=1,
@@ -44,40 +45,70 @@ with st.sidebar.form('input_parameters'):
         min_value=1,
         value=3
     )
-    start_week = st.selectbox(
-        'Start week',
-        dates
-    )
-    end_week = st.selectbox(
-        'End week',
-        dates
-    )
     purchaser_distribution_selections = st.multiselect(
         'Purchaser Distribution',
         ['Uniform',
-        'Normal',
-        'Skewed in the money',
-        'Skewed out of the money',
-        'Skewed extremely in the money',
-        'Skewed extremely out of the money']
+            'Normal',
+            'Skewed in the money',
+            'Skewed out of the money',
+            'Skewed extremely in the money',
+            'Skewed extremely out of the money']
     )
     lp_distribution_selection = st.selectbox(
         'Liquidity Provider Distribution',
         ['Uniform', 'Normal']
     )
-    submitted = st.form_submit_button('Run')
+    if underlying_asset == 'ETH':
+        eth_csv_processor = CSVProcessor("data/ethdata.csv")
+        start_date = st.date_input(
+            'Start date',
+            min_value=eth_csv_processor.get_first_date(),
+            max_value=eth_csv_processor.get_last_date() - timedelta(days=7),
+            value=eth_csv_processor.get_first_date()
+        )
+        num_epochs = st.number_input(
+            'Number of epochs',
+            min_value=1,
+            max_value=eth_csv_processor.get_num_weeks_after_date(
+                start_date)
+        )
+    elif underlying_asset == 'TSLA':
+        tsla_csv_processor = CSVProcessor("data/tsladata.csv")
+        start_date = st.date_input(
+            'Start date',
+            min_value=tsla_csv_processor.get_first_date(),
+            max_value=tsla_csv_processor.get_last_date(),
+            value=tsla_csv_processor.get_first_date()
+        )
+        num_epochs = st.number_input(
+            'Number of epochs',
+            min_value=1,
+            max_value=tsla_csv_processor.get_num_weeks_after_date(
+                start_date)
+        )
+
+    with st.form('input_parameters'):
+        submitted = st.form_submit_button('Run')
 
 # RESULTS
 
 tvl_container = st.empty()
 option_pool_profit_container = st.empty()
 lp_profit_container = st.empty()
-eth_price_container = st.empty()
+underlying_price_container = st.empty()
 purchaser_strike_value_container = st.empty()
 
 if submitted:
 
-    epoch_dates = dates[dates.index(start_week):dates.index(end_week) + 1]
+    if underlying_asset == 'ETH':
+        asset = UnderlyingAsset.ETH
+        csv_processor = eth_csv_processor
+    elif underlying_asset == 'TSLA':
+        asset = UnderlyingAsset.TSLA
+        csv_processor = tsla_csv_processor
+
+    epoch_dates = [str(start_date + timedelta(7 * i))
+                   for i in range(num_epochs + 1)]
 
     # purchaser distribution setting
     purchaser_distributions = []
@@ -108,7 +139,8 @@ if submitted:
         num_purchasers,
         epoch_dates,
         Distribution(purchaser_distribution),
-        Distribution(lp_distribution)
+        Distribution(lp_distribution),
+        asset
     ) for purchaser_distribution in purchaser_distributions]
     option_pools = [simulation.run() for simulation in simulations]
     epoch_data = DataProcessor.get_data_by_epoch(option_pools)
@@ -122,12 +154,13 @@ if submitted:
     option_pool_profit_container.empty()
     purchaser_strike_value_container.empty()
     lp_profit_container.empty()
-    eth_price_container.empty()
+    underlying_price_container.empty()
 
     with tvl_container.container():
         st.subheader('Total value locked in the option pool')
 
-        st.markdown("Every epoch, LPs deposit 1-3 ETH and attempt to withdraw up to 2 ETH. Purchasers will attempt to purchase an option every epoch, and their options are automatically exercised depending on the end price of ETH at the end of the epoch.")
+        st.markdown("Every epoch, purchasers will attempt to purchase an option every epoch, and their options are automatically exercised depending on the end price of " +
+                    underlying_asset + " at the end of the epoch.")
 
         st.table(pd.DataFrame(
             [[
@@ -183,10 +216,11 @@ if submitted:
     with lp_profit_container.container():
         st.subheader('Liquidity provider profit by epoch')
 
-        st.markdown("At the beginning of each epoch, LP profit is incremented by the summation of all premiums paid by purchasers. At the end of the epoch, purchasers will exercise their options if the price of ETH is greater than the strike price. When an option is exercised, the LP profit is incremented by the corresponding strike price and decremented by the price of ETH.")
+        st.markdown("At the beginning of each epoch, LP profit is incremented by the summation of all premiums paid by purchasers. At the end of the epoch, purchasers will exercise their options if the price of " +
+                    underlying_asset + " is greater than the strike price. When an option is exercised, the LP profit is incremented by the corresponding strike price and decremented by the price of " + underlying_asset + ".")
 
         st.latex(r'''
-            \text{LP profit over an epoch} = \sum_{\text{purchased options}} \text{premium} + \sum_{\text{exercised options}} \left(\text{strike} - \text{price of ETH in USD}\right)
+            \text{LP profit over an epoch} = \sum_{\text{purchased options}} \text{premium} + \sum_{\text{exercised options}} \left(\text{strike} - \text{price of the underlying asset in USD}\right)
         ''')
 
         st.table(pd.DataFrame(
@@ -236,14 +270,14 @@ if submitted:
             )
         ), use_container_width=True)
 
-    with eth_price_container.container():
-        st.subheader('Price of ETH')
+    with underlying_price_container.container():
+        st.subheader('Price of ' + underlying_asset)
 
         st.altair_chart(alt.Chart(epoch_data).mark_line(
             color="gray"
         ).encode(
             x=alt.X('start_date:O', axis=alt.Axis(title='Epoch')),
-            y=alt.Y('end_eth_price:Q', axis=alt.Axis(format='$.2f',
+            y=alt.Y('end_underlying_price:Q', axis=alt.Axis(format='$.2f',
                     title='USDT'))
         ), use_container_width=True)
 

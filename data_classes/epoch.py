@@ -6,7 +6,7 @@ from typing import List
 class Epoch:
     start_date: str
 
-    end_eth_price: float
+    end_underlying_price: float
 
     # total value locked in the pool at the end of the epoch
     total_value_locked: float

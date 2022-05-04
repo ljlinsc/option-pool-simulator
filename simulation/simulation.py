@@ -1,6 +1,7 @@
 import random
 from typing import List
 from data_classes.distribution import Distribution
+from data_classes.underlying_asset import UnderlyingAsset
 from processors.csv_processor import CSVProcessor
 
 from simulation.liquidity_provider import LiquidityProvider
@@ -16,12 +17,14 @@ class Simulation:
         num_purchasers: int,
         epoch_dates: List[str],
         purchaser_distribution: Distribution,
-        lp_distribution: Distribution
+        lp_distribution: Distribution,
+        asset: UnderlyingAsset
     ) -> None:
         self.csv_processor = csv_processor
         self.epoch_dates = epoch_dates
         self.purchaser_distribution = purchaser_distribution
         self.lp_distribution = lp_distribution
+        self.asset = asset
         self.option_pool = OptionPool(csv_processor, purchaser_distribution)
         self.actors = []
 
@@ -30,7 +33,8 @@ class Simulation:
             self.actors.append(LiquidityProvider(
                 self.csv_processor,
                 self.option_pool,
-                self.lp_distribution
+                self.lp_distribution,
+                self.asset
             ))
 
         # Create purchasers

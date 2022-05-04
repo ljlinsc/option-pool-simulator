@@ -36,7 +36,7 @@ class Purchaser:
         )
         if strike != -1:
             self.profit -= strike
-            self.profit += self.csv_processor.get_eth_price(date)
+            self.profit += self.csv_processor.get_underlying_price(date)
 
     def generate_random_strike_range_value(self) -> float:
         '''
