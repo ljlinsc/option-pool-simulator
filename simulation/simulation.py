@@ -1,9 +1,9 @@
 from datetime import datetime
 import random
 from typing import List
+
 from data_classes.distribution import Distribution
 from data_classes.underlying_asset import UnderlyingAsset
-
 from simulation.liquidity_provider import LiquidityProvider
 from simulation.option_pool import OptionPool
 from simulation.purchaser import Purchaser

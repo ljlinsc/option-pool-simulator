@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
+
 import altair as alt
 import pandas as pd
 import streamlit as st
+
 from data_classes.distribution import Distribution, LPDistribution, PurchaserDistribution
 from data_classes.underlying_asset import UnderlyingAsset
-
 from simulation.simulation import Simulation
 from utils.csv_processor import CSVProcessor
 from utils.data_processor import DataProcessor

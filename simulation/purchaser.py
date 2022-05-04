@@ -1,8 +1,8 @@
 from datetime import datetime
-from data_classes.distribution import Distribution
-from utils.csv_processor import CSVProcessor
 
+from data_classes.distribution import Distribution
 from simulation.option_pool import OptionPool
+from utils.csv_processor import CSVProcessor
 
 
 class Purchaser:

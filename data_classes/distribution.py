@@ -1,7 +1,7 @@
 from enum import Enum, auto
-from scipy.stats import skewnorm, norm
 
 import numpy as np
+from scipy.stats import skewnorm, norm
 
 
 class PurchaserDistribution(Enum):

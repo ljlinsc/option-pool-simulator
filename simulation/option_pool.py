@@ -1,6 +1,8 @@
 from datetime import datetime
+
 import numpy as np
 from scipy.stats import norm
+
 from data_classes.distribution import Distribution
 from data_classes.epoch import Epoch
 from data_classes.option import Option, OptionType

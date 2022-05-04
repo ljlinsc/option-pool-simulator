@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import List
+
 import altair as alt
 import numpy as np
 
