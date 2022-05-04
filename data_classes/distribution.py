@@ -16,8 +16,6 @@ class PurchaserDistribution(Enum):
 class LPDistribution(Enum):
     UNIFORM = auto()
     NORMAL = auto()
-    SKEWIN = auto()
-    SKEWOUT = auto()
 
 
 class Distribution:
@@ -45,6 +43,7 @@ class Distribution:
             raise NotImplementedError
 
     def generate_value(self) -> float:
+        """Return a random value in [0, 1] based on the distribution."""
         if self.distribution == PurchaserDistribution.UNIFORM:
             return self.fix_range(np.random.uniform(low=0, high=1))
         elif self.distribution == PurchaserDistribution.NORMAL:
@@ -58,17 +57,15 @@ class Distribution:
         elif self.distribution == PurchaserDistribution.EXTREMESKEWOUT:
             return self.fix_range(skewnorm(-9, loc=0.95, scale=0.2).rvs())
 
-        return 0.0
-
     def generate_ranged_value(self, low: float, high: float) -> float:
+        """Return a random value in [low, high] based on the distribution."""
         if self.distribution == LPDistribution.UNIFORM:
             return np.random.uniform(low=low, high=high)
         elif self.distribution == LPDistribution.NORMAL:
             return norm(loc=(high + low)/2., scale=(high - low)/4.).rvs()
 
-        return 0.0
-
     def fix_range(self, value: float) -> float:
+        """Return the value fixed in the range [0, 1]."""
         if value < 0:
             return 0
         elif value > 1:

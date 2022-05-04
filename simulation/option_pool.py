@@ -52,21 +52,20 @@ class OptionPool:
         purchaser_id: int,
         value: float
     ) -> float:
+        """Returns the premium required to purchase a call option on 1 of the
+        underlying assets stored in the option pool. Otherwise, returns -1 to
+        indicate that there are no unlocked assets available in the pool.
+        """
         if self.total_underlying_asset_unlocked > 0:
-            strike = self.calculate_strike_price(
-                value,
-                date,
-            )
-            premium = self.calculate_premium(
-                date,
-                strike,
-            )
+            strike = self.calculate_strike_price(value, date)
+            premium = self.calculate_premium(date, strike)
 
             # Lock the underlying asset
             self.total_underlying_asset_unlocked -= 1
             self.total_underlying_asset_locked += 1
 
-            # Pay the premium
+            # Increment the pool's USDT by the premium (indicating that the
+            # purchaser paid this amount)
             self.total_usdt += premium
 
             # Store the option details
@@ -86,6 +85,10 @@ class OptionPool:
         return -1
 
     def exercise_call_option(self, date: datetime, purchaser_id: int) -> float:
+        """Exercises the call option and returns the strike price. Otherwise,
+        returns -1 if the call option was not exercised or the call option was
+        not found.
+        """
         if purchaser_id in self.options.keys():
             strike = self.options.pop(purchaser_id).strike
             end_underlying_price = self.csv_processor.get_underlying_price(
@@ -124,12 +127,10 @@ class OptionPool:
         value: float,
         date: datetime,
     ) -> float:
-        '''
-        Given a value in the range [0, 1] where 0 is the lowest possible strike
-        price and 1 is the highest possible strike price, return the
-        corresponding strike price.
-        '''
-
+        """Returns a strike price depending on the lowest permitted strike
+        price, the highest permitted strike price, and a value [0, 1] indicating
+        a random strike price within that range.
+        """
         lowest = self.calculate_lowest_strike(date)
         highest = self.calculate_highest_strike(date)
         return lowest + (highest - lowest) * value
@@ -139,18 +140,15 @@ class OptionPool:
         date: datetime,
         strike: float,
     ) -> float:
-        '''
-        Given a date and a strike price, calculate the price of the option
-        premium in USDT based on values from the CSVs. Black-Scholes options
-        premium prediction.
+        """Calculates the premium in USDT using Black-Scholes options premium
+        prediction based on the date and strike price.
 
         S = spot price of asset
         K = strike price of option
         T = time in years
         r = risk free interest rate
         sigma = annualized vol (vix as a percentage)
-        '''
-
+        """
         S = self.csv_processor.get_underlying_price(date)
         K = strike
         T = 7.0 / 365.0

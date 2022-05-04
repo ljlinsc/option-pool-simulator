@@ -22,6 +22,7 @@ class Purchaser:
         self.profit = 0
 
     def start_epoch(self, date: datetime) -> None:
+        """Attempts to purchase a random call option from the option pool."""
         premium = self.option_pool.purchase_call_option(
             date,
             self.id,
@@ -31,6 +32,9 @@ class Purchaser:
             self.profit -= premium
 
     def end_epoch(self, date: datetime) -> None:
+        """Attempts to exercise the call option purchased at the beginning of
+        the epoch from the option pool.
+        """
         strike = self.option_pool.exercise_call_option(
             date,
             self.id
@@ -40,9 +44,7 @@ class Purchaser:
             self.profit += self.csv_processor.get_underlying_price(date)
 
     def generate_random_strike_range_value(self) -> float:
-        '''
-        Use self.distribution to randomly pick a float in the range [0, 1] where
-        0 represents the most in-the-money strike price and 1 represents the
-        most out-of-the-money strike price.
-        '''
+        """Returns a value [0, 1] where 0 represents the most in-the-money
+        strike price and 1 represents the most out-of-the-money strike price.
+        """
         return self.distribution.generate_value()

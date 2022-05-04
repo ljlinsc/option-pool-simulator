@@ -26,24 +26,33 @@ class LiquidityProvider:
         self.num_underlying_withdrawn = 0
 
     def start_epoch(self, date: datetime) -> None:
+        """Deposits a random amount of the underlying asset into the option
+        pool.
+        """
         value = self.generate_random_deposit_value()
         self.option_pool.deposit(
             value,
             self.asset
         )
 
+        # Statistics
         self.profit -= self.csv_processor.get_underlying_price(date) * value
         self.num_underlying_in_pool += value
         self.num_underlying_deposited += value
 
     def end_epoch(self, date: datetime) -> None:
+        """Attempts to withdraw a random amount of the underlying asset from the
+        option pool. It cannot withdraw more than it has deposited.
+        """
         value = self.generate_random_withdraw_value()
         if value >= self.num_underlying_in_pool:
             is_success = self.option_pool.withdraw(
                 value,
                 self.asset
             )
+
             if is_success:
+                # Statistics
                 self.profit += self.csv_processor.get_underlying_price(
                     date) * value
                 self.num_underlying_in_pool -= 1
