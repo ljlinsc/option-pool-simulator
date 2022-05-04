@@ -4,22 +4,20 @@ from scipy.stats import skewnorm, norm
 import numpy as np
 
 
-# purchaser distributions
 class PurchaserDistribution(Enum):
     UNIFORM = auto()
     NORMAL = auto()  # normal distribution centered at the money
     SKEWIN = auto()  # normal distribution centered in the money
     SKEWOUT = auto()  # normal distribution centered out the money
-    EXTREMESKEWIN = auto() # normal distribution centered extremely in the money
-    EXTREMESKEWOUT = auto() # normal distribution centered extremely out the money
+    EXTREMESKEWIN = auto()  # normal distribution centered extremely in the money
+    EXTREMESKEWOUT = auto()  # normal distribution centered extremely out the money
 
 
-# liquidity provider distribution
 class LPDistribution(Enum):
     UNIFORM = auto()
     NORMAL = auto()
-    # SKEWIN = auto()
-    # SKEWOUT = auto()
+    SKEWIN = auto()
+    SKEWOUT = auto()
 
 
 class Distribution:
@@ -58,7 +56,7 @@ class Distribution:
         elif self.distribution == PurchaserDistribution.EXTREMESKEWIN:
             return self.fix_range(skewnorm(9, loc=0.05, scale=0.2).rvs())
         elif self.distribution == PurchaserDistribution.EXTREMESKEWOUT:
-            return self.fix_range(skewnorm(-9, loc=0.95, scale=0.2).rvs()) 
+            return self.fix_range(skewnorm(-9, loc=0.95, scale=0.2).rvs())
 
         return 0.0
 
@@ -67,6 +65,7 @@ class Distribution:
             return np.random.uniform(low=low, high=high)
         elif self.distribution == LPDistribution.NORMAL:
             return norm(loc=(high + low)/2., scale=(high - low)/4.).rvs()
+
         return 0.0
 
     def fix_range(self, value: float) -> float:

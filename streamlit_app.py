@@ -1,22 +1,14 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 import altair as alt
 import pandas as pd
 import streamlit as st
 from data_classes.distribution import Distribution, LPDistribution, PurchaserDistribution
 from data_classes.underlying_asset import UnderlyingAsset
 
-from processors.csv_processor import CSVProcessor
 from simulation.simulation import Simulation
-from processors.data_processor import DataProcessor
-
-
-def get_dollar_str(value: float) -> str:
-    if value < 0:
-        dollar_str = "-"
-    else:
-        dollar_str = ""
-    dollar_str += "$%.2f" % (value.__abs__())
-    return dollar_str
+from utils.csv_processor import CSVProcessor
+from utils.data_processor import DataProcessor
+from utils.formatter import get_dollar_str
 
 
 # PAGE CONFIGURATION
@@ -35,59 +27,51 @@ with st.sidebar:
         'Underlying asset',
         ['ETH', 'TSLA']
     )
-    num_purchasers = st.number_input(
-        'Number of option purchasers',
-        min_value=1,
-        value=3
-    )
-    num_liquidity_providers = st.number_input(
-        'Number of liquidity providers',
-        min_value=1,
-        value=3
-    )
-    purchaser_distribution_selections = st.multiselect(
-        'Purchaser Distribution',
-        ['Uniform',
-            'Normal',
-            'Skewed in the money',
-            'Skewed out of the money',
-            'Skewed extremely in the money',
-            'Skewed extremely out of the money']
-    )
-    lp_distribution_selection = st.selectbox(
-        'Liquidity Provider Distribution',
-        ['Uniform', 'Normal']
-    )
     if underlying_asset == 'ETH':
-        eth_csv_processor = CSVProcessor("data/ethdata.csv")
-        start_date = st.date_input(
-            'Start date',
-            min_value=eth_csv_processor.get_first_date(),
-            max_value=eth_csv_processor.get_last_date() - timedelta(days=7),
-            value=eth_csv_processor.get_first_date()
-        )
-        num_epochs = st.number_input(
-            'Number of epochs',
-            min_value=1,
-            max_value=eth_csv_processor.get_num_weeks_after_date(
-                start_date)
-        )
+        csv_processor = CSVProcessor("data/eth.csv")
     elif underlying_asset == 'TSLA':
-        tsla_csv_processor = CSVProcessor("data/tsladata.csv")
-        start_date = st.date_input(
-            'Start date',
-            min_value=tsla_csv_processor.get_first_date(),
-            max_value=tsla_csv_processor.get_last_date(),
-            value=tsla_csv_processor.get_first_date()
-        )
-        num_epochs = st.number_input(
-            'Number of epochs',
-            min_value=1,
-            max_value=tsla_csv_processor.get_num_weeks_after_date(
-                start_date)
-        )
+        csv_processor = CSVProcessor("data/tsla.csv")
+
+    start_date = st.date_input(
+        'Start date',
+        min_value=csv_processor.get_first_date(),
+        max_value=csv_processor.get_last_date() - timedelta(days=7),
+        value=csv_processor.get_first_date()
+    )
 
     with st.form('input_parameters'):
+        num_epochs = st.number_input(
+            'Number of epochs',
+            min_value=1,
+            max_value=csv_processor.get_num_weeks_after_date(
+                start_date)
+        )
+        num_purchasers = st.number_input(
+            'Number of option purchasers',
+            min_value=1,
+            value=3
+        )
+        num_liquidity_providers = st.number_input(
+            'Number of liquidity providers',
+            min_value=1,
+            value=3
+        )
+        purchaser_distribution_selections = st.multiselect(
+            'Purchaser Distribution',
+            [
+                'Uniform',
+                'Normal',
+                'Skewed in the money',
+                'Skewed out of the money',
+                'Skewed extremely in the money',
+                'Skewed extremely out of the money'
+            ]
+        )
+        lp_distribution_selection = st.selectbox(
+            'Liquidity Provider Distribution',
+            ['Uniform', 'Normal']
+        )
+
         submitted = st.form_submit_button('Run')
 
 # RESULTS
@@ -100,17 +84,16 @@ purchaser_strike_value_container = st.empty()
 
 if submitted:
 
+    epoch_dates = [
+        datetime.combine(start_date + timedelta(7 * i), datetime.min.time())
+        for i in range(num_epochs + 1)
+    ]
+
     if underlying_asset == 'ETH':
         asset = UnderlyingAsset.ETH
-        csv_processor = eth_csv_processor
     elif underlying_asset == 'TSLA':
         asset = UnderlyingAsset.TSLA
-        csv_processor = tsla_csv_processor
 
-    epoch_dates = [str(start_date + timedelta(7 * i))
-                   for i in range(num_epochs + 1)]
-
-    # purchaser distribution setting
     purchaser_distributions = []
     if 'Uniform' in purchaser_distribution_selections:
         purchaser_distributions.append(PurchaserDistribution.UNIFORM)
@@ -125,7 +108,6 @@ if submitted:
     if 'Skewed extremely out of the money' in purchaser_distribution_selections:
         purchaser_distributions.append(PurchaserDistribution.EXTREMESKEWOUT)
 
-    # lp distribution selection
     if lp_distribution_selection == 'Uniform':
         lp_distribution = LPDistribution.UNIFORM
     elif lp_distribution_selection == 'Normal':

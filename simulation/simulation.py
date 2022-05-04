@@ -1,12 +1,13 @@
+from datetime import datetime
 import random
 from typing import List
 from data_classes.distribution import Distribution
 from data_classes.underlying_asset import UnderlyingAsset
-from processors.csv_processor import CSVProcessor
 
 from simulation.liquidity_provider import LiquidityProvider
 from simulation.option_pool import OptionPool
 from simulation.purchaser import Purchaser
+from utils.csv_processor import CSVProcessor
 
 
 class Simulation:
@@ -15,7 +16,7 @@ class Simulation:
         csv_processor: CSVProcessor,
         num_liquidity_providers: int,
         num_purchasers: int,
-        epoch_dates: List[str],
+        epoch_dates: List[datetime],
         purchaser_distribution: Distribution,
         lp_distribution: Distribution,
         asset: UnderlyingAsset

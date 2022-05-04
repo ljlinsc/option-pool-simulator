@@ -1,14 +1,19 @@
+from datetime import datetime
 import numpy as np
 from scipy.stats import norm
 from data_classes.distribution import Distribution
 from data_classes.epoch import Epoch
 from data_classes.option import Option, OptionType
 from data_classes.underlying_asset import UnderlyingAsset
-from processors.csv_processor import CSVProcessor
+from utils.csv_processor import CSVProcessor
 
 
 class OptionPool:
-    def __init__(self, csv_processor: CSVProcessor, purchaser_distribution: Distribution) -> None:
+    def __init__(
+        self,
+        csv_processor: CSVProcessor,
+        purchaser_distribution: Distribution
+    ) -> None:
         self.csv_processor = csv_processor
         self.purchaser_distribution = purchaser_distribution
         self.total_underlying_asset_unlocked = 0.0
@@ -41,7 +46,7 @@ class OptionPool:
 
     def purchase_call_option(
         self,
-        date: str,
+        date: datetime,
         purchaser_id: int,
         value: float
     ) -> float:
@@ -78,7 +83,7 @@ class OptionPool:
             return premium
         return -1
 
-    def exercise_call_option(self, date: str, purchaser_id: int) -> float:
+    def exercise_call_option(self, date: datetime, purchaser_id: int) -> float:
         if purchaser_id in self.options.keys():
             strike = self.options.pop(purchaser_id).strike
             end_underlying_price = self.csv_processor.get_underlying_price(
@@ -97,17 +102,17 @@ class OptionPool:
         self.total_underlying_asset_unlocked += self.total_underlying_asset_locked
         self.total_underlying_asset_locked = 0.0
 
-    def convert_usdt_to_underlying_asset(self, date: str) -> None:
+    def convert_usdt_to_underlying_asset(self, date: datetime) -> None:
         self.total_underlying_asset_unlocked += self.total_usdt / \
             self.csv_processor.get_underlying_price(date)
         self.total_usdt = 0
 
-    def calculate_lowest_strike(self, date: str) -> float:
+    def calculate_lowest_strike(self, date: datetime) -> float:
         lowstrike = self.csv_processor.get_underlying_price(date)
         lowstrike -= .5*lowstrike
         return lowstrike
 
-    def calculate_highest_strike(self, date: str) -> float:
+    def calculate_highest_strike(self, date: datetime) -> float:
         highstrike = self.csv_processor.get_underlying_price(date)
         highstrike += .5*highstrike
         return highstrike
@@ -115,7 +120,7 @@ class OptionPool:
     def calculate_strike_price(
         self,
         value: float,
-        date: str,
+        date: datetime,
     ) -> float:
         '''
         Given a value in the range [0, 1] where 0 is the lowest possible strike
@@ -129,7 +134,7 @@ class OptionPool:
 
     def calculate_premium(
         self,
-        date: str,
+        date: datetime,
         strike: float,
     ) -> float:
         '''
@@ -156,9 +161,9 @@ class OptionPool:
         premium = S * N(d1) - K * np.exp(-r*T) * N(d2)
         return premium
 
-    def initialize_epoch_statistics(self, date: str) -> None:
+    def initialize_epoch_statistics(self, date: datetime) -> None:
         self.epochs.append(Epoch(
-            date,
+            str(date.date()),
             self.csv_processor.get_underlying_price(date),
             0.0,
             0.0,

@@ -1,12 +1,19 @@
-import numpy as np
+from datetime import datetime
+
 from data_classes.distribution import Distribution
-from processors.csv_processor import CSVProcessor
-from simulation.option_pool import OptionPool
 from data_classes.underlying_asset import UnderlyingAsset
+from utils.csv_processor import CSVProcessor
+from simulation.option_pool import OptionPool
 
 
 class LiquidityProvider:
-    def __init__(self, csv_processor: CSVProcessor, option_pool: OptionPool, distribution: Distribution, asset: UnderlyingAsset) -> None:
+    def __init__(
+        self,
+        csv_processor: CSVProcessor,
+        option_pool: OptionPool,
+        distribution: Distribution,
+        asset: UnderlyingAsset
+    ) -> None:
         self.csv_processor = csv_processor
         self.option_pool = option_pool
         self.distribution = distribution
@@ -18,7 +25,7 @@ class LiquidityProvider:
         self.num_underlying_deposited = 0
         self.num_underlying_withdrawn = 0
 
-    def start_epoch(self, date: str) -> None:
+    def start_epoch(self, date: datetime) -> None:
         value = self.generate_random_deposit_value()
         self.option_pool.deposit(
             value,
@@ -29,7 +36,7 @@ class LiquidityProvider:
         self.num_underlying_in_pool += value
         self.num_underlying_deposited += value
 
-    def end_epoch(self, date: str) -> None:
+    def end_epoch(self, date: datetime) -> None:
         value = self.generate_random_withdraw_value()
         if value >= self.num_underlying_in_pool:
             is_success = self.option_pool.withdraw(

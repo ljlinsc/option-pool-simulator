@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from math import floor
 import pandas as pd
 
@@ -11,22 +11,14 @@ class CSVProcessor:
             parse_dates=['Date']
         )
 
-    def get_underlying_price(self, date: str) -> float:
-        date = pd.to_datetime(date)
+    def get_underlying_price(self, date: datetime) -> float:
         return self.data.loc[date][2]
 
-    def get_vol(self, date: str) -> float:
-        date = pd.to_datetime(date)
+    def get_vol(self, date: datetime) -> float:
         return self.data.loc[date][1]
 
-    def get_r(self, date: str) -> float:
-        date = pd.to_datetime(date)
+    def get_r(self, date: datetime) -> float:
         return self.data.loc[date][0]
-
-    def get_end_underlying_price_wk(self, date: str) -> float:
-        date = pd.to_datetime(date)
-        enddate = date + timedelta(days=7)
-        return self.data.loc[enddate][2]
 
     def get_first_date(self) -> datetime:
         return self.data.index[0]

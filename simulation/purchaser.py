@@ -1,5 +1,6 @@
+from datetime import datetime
 from data_classes.distribution import Distribution
-from processors.csv_processor import CSVProcessor
+from utils.csv_processor import CSVProcessor
 
 from simulation.option_pool import OptionPool
 
@@ -20,7 +21,7 @@ class Purchaser:
         # Statistics
         self.profit = 0
 
-    def start_epoch(self, date: str) -> None:
+    def start_epoch(self, date: datetime) -> None:
         premium = self.option_pool.purchase_call_option(
             date,
             self.id,
@@ -29,7 +30,7 @@ class Purchaser:
         if premium != -1:
             self.profit -= premium
 
-    def end_epoch(self, date: str) -> None:
+    def end_epoch(self, date: datetime) -> None:
         strike = self.option_pool.exercise_call_option(
             date,
             self.id
