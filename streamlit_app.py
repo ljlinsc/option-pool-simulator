@@ -242,8 +242,13 @@ if submitted:
     with purchaser_strike_value_container.container():
         st.subheader("Purchaser strike price selection distribution")
 
-        st.altair_chart(alt.Chart(strike_values_data).mark_bar().encode(
-            x=alt.X("value:O", axis=alt.Axis(title="Value")),
-            y=alt.Y("frequency:Q", axis=alt.Axis(title="Frequency")),
-            color=alt.value("black")
+        st.altair_chart(create_layered_bar_chart(
+            strike_values_data,
+            "value:O",
+            "Value",
+            "frequency:Q",
+            "Frequency",
+            "distribution:O",
+            "Purchaser strike price distribution",
+            y_axis_format=""
         ), use_container_width=True)

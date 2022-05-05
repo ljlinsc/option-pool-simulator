@@ -21,14 +21,21 @@ class DataProcessor:
         ) for option_pool in option_pools for epoch in option_pool.epochs])
 
     def get_strike_values_data(option_pools: List[OptionPool]) -> alt.Data:
-        data = [{'value': np.around(i, 2), 'frequency': 0}
-                for i in np.arange(0.05, 1.05, 0.05)]
+        data = []
         for option_pool in option_pools:
+            option_pool_data = [
+                {
+                    'value': np.around(i, 2),
+                    'frequency': 0,
+                    'distribution': option_pool.purchaser_distribution.name
+                }
+                for i in np.arange(0.05, 1.05, 0.05)]
             for strike_value in option_pool.strike_values:
-                for i in range(len(data)):
-                    if data[i]['value'] >= strike_value:
-                        data[i]['frequency'] += 1
+                for i in range(len(option_pool_data)):
+                    if option_pool_data[i]['value'] >= strike_value:
+                        option_pool_data[i]['frequency'] += 1
                         break
+            data.extend(option_pool_data)
         return alt.Data(values=data)
 
     def get_total_lp_profit(option_pools: List[OptionPool]) -> List[DataValue]:

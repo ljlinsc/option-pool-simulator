@@ -8,7 +8,8 @@ def create_layered_bar_chart(
     y_shorthand: str,
     y_axis_title: str,
     z_shorthand: str,
-    z_axis_title: str
+    z_axis_title: str,
+    y_axis_format="$.2f",
 ) -> alt.Chart:
     return alt.Chart(data).mark_bar(opacity=0.7).encode(
         x=alt.X(
@@ -17,14 +18,17 @@ def create_layered_bar_chart(
         ),
         y=alt.Y(
             shorthand=y_shorthand,
-            axis=alt.Axis(format='$.2f', title=y_axis_title),
+            axis=alt.Axis(
+                format=y_axis_format,
+                title=y_axis_title
+            ),
             stack=None
         ),
         color=alt.Color(
             shorthand=z_shorthand,
-            scale=alt.Scale(scheme='set1'),
+            scale=alt.Scale(scheme="set1"),
             title=z_axis_title,
-            legend=alt.Legend(orient='top')
+            legend=alt.Legend(orient="top")
         )
     )
 
